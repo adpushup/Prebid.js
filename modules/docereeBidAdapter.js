@@ -14,7 +14,7 @@ export const spec = {
     const { placementId } = bid.params;
     return !!placementId
   },
-  buildRequests: (validBidRequests) => {
+  buildRequests: (validBidRequests, bidderRequest) => {
     const serverRequests = [];
     const { data } = config.getConfig('doceree.user')
     const { page, domain, token } = config.getConfig('doceree.context')
@@ -22,7 +22,7 @@ export const spec = {
 
     validBidRequests.forEach(function(validBidRequest) {
       const { publisherUrl, placementId } = validBidRequest.params;
-      const url = publisherUrl || page
+      const url = publisherUrl || page || bidderRequest.refererInfo.referer;
       let queryString = '';
       queryString = utils.tryAppendQueryString(queryString, 'id', placementId);
       queryString = utils.tryAppendQueryString(queryString, 'publisherDomain', domain);
