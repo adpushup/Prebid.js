@@ -138,6 +138,26 @@ const MEDIA_TYPES = {
   Audio: 3,
   Native: 4
 };
+const AP_VALID_SIZES = [
+	[300, 50],
+	[120, 600],
+	[250, 250],
+	[300, 250],
+	[300, 600],
+	[728, 90],
+	[160, 600],
+	[728, 400],
+	[480, 320],
+	[320, 50],
+	[580, 400],
+	[970, 90],
+	[970, 250],
+	[320, 480]
+];
+
+function apIsValidSize (width, height) {
+  return find(AP_VALID_SIZES, ([validWidth, validHeight]) => validWidth === width && validHeight === height);
+}
 
 /**
  * Transform valid bid request config object to banner impression object that will be sent to ad server.
@@ -1379,7 +1399,7 @@ function createNativeImps(validBidRequest, nativeImps) {
  */
 function createVideoImps(validBidRequest, videoImps) {
   const imp = bidToVideoImp(validBidRequest);
-  if (Object.keys(imp).length != 0) {
+  if (Object.keys(imp).length != 0 && apIsValidSize(imp.video.w, imp.video.h)) {
     videoImps[validBidRequest.adUnitCode] = {};
     videoImps[validBidRequest.adUnitCode].ixImps = [];
     videoImps[validBidRequest.adUnitCode].ixImps.push(imp);
@@ -1451,7 +1471,7 @@ function createBannerImps(validBidRequest, missingBannerSizes, bannerImps, bidde
   bannerImps[validBidRequest.adUnitCode].divId = divId;
 
   // Create IX imps from params.size
-  if (bannerSizeDefined) {
+  if (bannerSizeDefined && apIsValidSize(imp.banner.w, imp.banner.h)) {
     if (!bannerImps[validBidRequest.adUnitCode].hasOwnProperty('ixImps')) {
       bannerImps[validBidRequest.adUnitCode].ixImps = [];
     }
@@ -1479,7 +1499,8 @@ function updateMissingSizes(validBidRequest, missingBannerSizes, imp) {
   } else {
     // New Ad Unit
     if (deepAccess(validBidRequest, 'mediaTypes.banner.sizes')) {
-      let sizeList = deepClone(validBidRequest.mediaTypes.banner.sizes);
+      let sizes = validBidRequest.mediaTypes.banner.sizes
+      let sizeList = deepClone(sizes.filter(size => apIsValidSize(...size)));
       removeFromSizes(sizeList, validBidRequest.params.size);
       let newAdUnitEntry = {
         'missingSizes': sizeList,
