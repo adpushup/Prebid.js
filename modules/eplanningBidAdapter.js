@@ -35,77 +35,20 @@ export const spec = {
     return Boolean(bid.params.ci) || Boolean(bid.params.t);
   },
 
-  buildRequests: function(bidRequests, bidderRequest) {
-    const method = 'GET';
-    const dfpClientId = '1';
-    const sec = 'ROS';
-    let url;
-    let params;
-    const urlConfig = getUrlConfig(bidRequests);
-    const pcrs = getCharset();
-    const spaces = getSpaces(bidRequests, urlConfig.ml);
-    // TODO: do the fallbacks make sense here?
-    const pageUrl = bidderRequest.refererInfo.page || bidderRequest.refererInfo.topmostLocation;
-    const domain = bidderRequest.refererInfo.domain || window.location.host;
-    if (urlConfig.t) {
-      url = 'https://' + urlConfig.isv + '/layers/t_pbjs_2.json';
-      params = {};
-    } else {
-      url = 'https://' + (urlConfig.sv || DEFAULT_SV) + '/pbjs/1/' + urlConfig.ci + '/' + dfpClientId + '/' + domain + '/' + sec;
-      // TODO: does the fallback make sense here?
-      const referrerUrl = bidderRequest.refererInfo.ref || bidderRequest.refererInfo.topmostLocation;
+  buildRequests: function (bidRequests, bidderRequest) {
+    const requests = [];
 
-      if (storage.hasLocalStorage()) {
-        registerViewabilityAllBids(bidRequests);
-      }
+		// compute video request
+		const videoBidRequests = bidRequests.filter((bid) => bid.mediaTypes && bid.mediaTypes[VIDEO]);
+		const videoRequest = formatWiseBuildRequests(videoBidRequests, bidderRequest, false);
+		if (videoRequest) requests.push(videoRequest);
 
-      params = {
-        rnd: rnd,
-        e: spaces.str,
-        ur: cutUrl(pageUrl || FILE),
-        pbv: '$prebid.version$',
-        ncb: '1',
-        vs: spaces.vs
-      };
-      if (pcrs) {
-        params.crs = pcrs;
-      }
+		// compute banner request
+		const bannerBidRequests = bidRequests.filter((bid) => bid.mediaTypes && bid.mediaTypes[BANNER]);
+		const bannerRequest = formatWiseBuildRequests(bannerBidRequests, bidderRequest, true);
+		if (bannerRequest) requests.push(bannerRequest);
 
-      if (referrerUrl) {
-        params.fr = cutUrl(referrerUrl);
-      }
-
-      if (bidderRequest && bidderRequest.gdprConsent) {
-        if (typeof bidderRequest.gdprConsent.gdprApplies !== 'undefined') {
-          params.gdpr = bidderRequest.gdprConsent.gdprApplies ? '1' : '0';
-          if (typeof bidderRequest.gdprConsent.consentString !== 'undefined') {
-            params.gdprcs = bidderRequest.gdprConsent.consentString;
-          }
-        }
-      }
-
-      if (bidderRequest && bidderRequest.uspConsent) {
-        params.ccpa = bidderRequest.uspConsent;
-      }
-
-      if ((getGlobal()).getUserIds && typeof (getGlobal()).getUserIds === 'function') {
-        const userIds = (getGlobal()).getUserIds();
-        for (var id in userIds) {
-          params['e_' + id] = (typeof userIds[id] === 'object') ? encodeURIComponent(JSON.stringify(userIds[id])) : encodeURIComponent(userIds[id]);
-        }
-      }
-      if (spaces.impType) {
-        params.vctx = spaces.impType & VAST_INSTREAM ? VAST_INSTREAM : VAST_OUTSTREAM;
-        params.vv = VAST_VERSION_DEFAULT;
-      }
-    }
-
-    return {
-      method: method,
-      url: url,
-      data: params,
-      adUnitToBidId: spaces.map,
-    };
+		return requests;
   },
   interpretResponse: function(serverResponse, request) {
     const response = serverResponse.body;
@@ -169,6 +112,79 @@ export const spec = {
     return syncs;
   },
 };
+
+function formatWiseBuildRequests(bidRequests, bidderRequest, disableVideo){ 
+    const method = 'GET';
+    const dfpClientId = '1';
+    const sec = 'ROS';
+    let url;
+    let params;
+    const urlConfig = getUrlConfig(bidRequests);
+    const pcrs = getCharset();
+    const spaces = getSpaces(bidRequests, urlConfig.ml,disableVideo);
+    // TODO: do the fallbacks make sense here?
+    const pageUrl = bidderRequest.refererInfo.page || bidderRequest.refererInfo.topmostLocation;
+    const domain = bidderRequest.refererInfo.domain || window.location.host;
+    if (urlConfig.t) {
+      url = 'https://' + urlConfig.isv + '/layers/t_pbjs_2.json';
+      params = {};
+    } else {
+      url = 'https://' + (urlConfig.sv || DEFAULT_SV) + '/pbjs/1/' + urlConfig.ci + '/' + dfpClientId + '/' + domain + '/' + sec;
+      // TODO: does the fallback make sense here?
+      const referrerUrl = bidderRequest.refererInfo.ref || bidderRequest.refererInfo.topmostLocation;
+
+      if (storage.hasLocalStorage()) {
+        registerViewabilityAllBids(bidRequests);
+      }
+
+      params = {
+        rnd: rnd,
+        e: spaces.str,
+        ur: cutUrl(pageUrl || FILE),
+        pbv: '$prebid.version$',
+        ncb: '1',
+        vs: spaces.vs
+      };
+      if (pcrs) {
+        params.crs = pcrs;
+      }
+
+      if (referrerUrl) {
+        params.fr = cutUrl(referrerUrl);
+      }
+
+      if (bidderRequest && bidderRequest.gdprConsent) {
+        if (typeof bidderRequest.gdprConsent.gdprApplies !== 'undefined') {
+          params.gdpr = bidderRequest.gdprConsent.gdprApplies ? '1' : '0';
+          if (typeof bidderRequest.gdprConsent.consentString !== 'undefined') {
+            params.gdprcs = bidderRequest.gdprConsent.consentString;
+          }
+        }
+      }
+
+      if (bidderRequest && bidderRequest.uspConsent) {
+        params.ccpa = bidderRequest.uspConsent;
+      }
+
+      if ((getGlobal()).getUserIds && typeof (getGlobal()).getUserIds === 'function') {
+        const userIds = (getGlobal()).getUserIds();
+        for (var id in userIds) {
+          params['e_' + id] = (typeof userIds[id] === 'object') ? encodeURIComponent(JSON.stringify(userIds[id])) : encodeURIComponent(userIds[id]);
+        }
+      }
+      if (spaces.impType) {
+        params.vctx = spaces.impType & VAST_INSTREAM ? VAST_INSTREAM : VAST_OUTSTREAM;
+        params.vv = VAST_VERSION_DEFAULT;
+      }
+    }
+
+    return {
+      method: method,
+      url: url,
+      data: params,
+      adUnitToBidId: spaces.map,
+    };
+}
 
 function getUserAgent() {
   return window.navigator.userAgent;
@@ -283,8 +299,20 @@ function getFloorStr(bid) {
   return '';
 }
 
-function getSpaces(bidRequests, ml) {
-  let impType = bidRequests.reduce((previousBits, bid) => (bid.mediaTypes && bid.mediaTypes[VIDEO]) ? (bid.mediaTypes[VIDEO].context == 'outstream' ? (previousBits | 2) : (previousBits | 1)) : previousBits, 0);
+function getSpaces(bidRequests, ml, disableVideo) {
+  let impType = 0;
+
+	if (!disableVideo) {
+		impType = bidRequests.reduce(
+			(previousBits, bid) =>
+				bid.mediaTypes && bid.mediaTypes[VIDEO]
+					? bid.mediaTypes[VIDEO].context == 'outstream'
+						? previousBits | 2
+						: previousBits | 1
+					: previousBits,
+			0
+		);
+	}
   // Only one type of auction is supported at a time
   if (impType) {
     bidRequests = bidRequests.filter((bid) => bid.mediaTypes && bid.mediaTypes[VIDEO] && (impType & VAST_INSTREAM ? (!bid.mediaTypes[VIDEO].context || bid.mediaTypes[VIDEO].context == 'instream') : (bid.mediaTypes[VIDEO].context == 'outstream')));
