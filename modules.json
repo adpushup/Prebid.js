@@ -1,0 +1,22 @@
+[
+	"appnexusBidAdapter",
+	"ixBidAdapter",
+	"rubiconBidAdapter",
+	"pubmaticBidAdapter",
+	"criteoBidAdapter",
+	"sovrnBidAdapter",
+	"nobidBidAdapter",
+	"onetagBidAdapter",
+	"sonobiBidAdapter",
+	"yieldmoBidAdapter",
+	"schain",
+	"amxBidAdapter",
+	"tripleliftBidAdapter",
+	"nextMillenniumBidAdapter",
+	"conversantBidAdapter",
+	"mediafuseBidAdapter",
+	"priceFloors",
+	"currency",
+	"pubxaiAnalyticsAdapter",
+	"gamoshiBidAdapter"
+]

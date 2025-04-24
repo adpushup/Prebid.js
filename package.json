@@ -1,6 +1,6 @@
 {
   "name": "prebid.js",
-  "version": "9.41.0-pre",
+  "version": "9.41.0",
   "description": "Header Bidding Management Library",
   "main": "src/prebid.public.js",
   "exports": {
@@ -37,7 +37,7 @@
     "header bidding",
     "prebid"
   ],
-  "globalVarName": "pbjs",
+  "globalVarName": "_apPbJs",
   "defineGlobal": true,
   "author": "The prebid.js contributors",
   "license": "Apache-2.0",
