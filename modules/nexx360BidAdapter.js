@@ -36,6 +36,7 @@ const ALIASES = [
   { code: '1accord', gvlid: 965 },
   { code: 'easybid', gvlid: 1068 },
   { code: 'prismassp', gvlid: 965 },
+  { code: 'spm', gvlid: 965 },
   { code: 'revnew', gvlid: 1468 }
 ];
 
