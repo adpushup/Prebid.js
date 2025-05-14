@@ -38,6 +38,7 @@ const ALIASES = [
   { code: 'prismassp', gvlid: 965 },
   { code: 'spm', gvlid: 965 },
   { code: 'bidstailamedia', gvlid: 965 },
+  { code: 'scoremedia', gvlid: 965 },
   { code: 'revnew', gvlid: 1468 }
 ];
 
