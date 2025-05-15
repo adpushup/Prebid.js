@@ -21,6 +21,8 @@
 	"tripleliftBidAdapter",
 	"smilewantedBidAdapter",
 	"vidoomyBidAdapter",
-	"nextMillenniumBidAdapter"
+	"nextMillenniumBidAdapter",
+	"conversantBidAdapter",
+	"mediafuseBidAdapter"
   ]
   
