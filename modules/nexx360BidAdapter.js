@@ -19,7 +19,7 @@ import { createResponse, enrichImp, enrichRequest, getAmxId, getUserSyncs } from
 const BIDDER_CODE = 'nexx360';
 const REQUEST_URL = 'https://fast.nexx360.io/booster';
 const PAGE_VIEW_ID = generateUUID();
-const BIDDER_VERSION = '6.0';
+const BIDDER_VERSION = '6.1';
 const GVLID = 965;
 const NEXXID_KEY = 'nexx360_storage';
 
@@ -36,7 +36,9 @@ const ALIASES = [
   { code: 'spm', gvlid: 965 },
   { code: 'bidstailamedia', gvlid: 965 },
   { code: 'scoremedia', gvlid: 965 },
-  { code: 'revnew', gvlid: 1468 }
+  { code: 'revnew', gvlid: 1468 },
+  { code: 'movingup', gvlid: 1416 },
+  { code: 'glomexbidder', gvlid: 967 },
 ];
 
 export const STORAGE = getStorageManager({
