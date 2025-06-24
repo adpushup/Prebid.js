@@ -157,7 +157,6 @@ function makeCommonRequestData(bid, geparameter, refererInfo) {
     ua: navigator.userAgent,
     tpaf: 1,
     cks: 1,
-    ib: 0,
     ...(gpid ? { gpid } : {}),
   };
 
