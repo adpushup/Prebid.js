@@ -11,6 +11,18 @@ import {
   parseSizesInput
 } from '../src/utils.js';
 import { config } from '../src/config.js';
+import {
+  _map,
+  cleanObj,
+  deepAccess,
+  flatten,
+  getWinDimensions,
+  isArray,
+  isNumber,
+  logWarn,
+  parseSizesInput
+} from '../src/utils.js';
+import { config } from '../src/config.js';
 import { BANNER, VIDEO } from '../src/mediaTypes.js';
 import { chunk } from '../libraries/chunk/chunk.js';
 import { getBoundingClientRect } from '../libraries/boundingClientRect/boundingClientRect.js';
