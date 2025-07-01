@@ -361,20 +361,14 @@ export function buildRequestData(
 	const pId = extractPID(params);
 	const isStorageAllowed = bidderSettings.get(bidderCode, 'storageAllowed');
 
-	const gpid = bid?.ortb2Imp?.ext?.gpid || '';
-	const cat = bidderRequest?.ortb2?.site?.cat || [];
-	const pagecat = bidderRequest?.ortb2?.site?.pagecat || [];
-	const contentData = bidderRequest?.ortb2?.site?.content?.data || [];
-	const userData = bidderRequest?.ortb2?.user?.data || [];
-	const contentLang =
-		bidderRequest?.ortb2?.site?.content?.language || document.documentElement.lang;
-	const coppa = bidderRequest?.ortb2?.regs?.coppa ?? 0;
-	const device = bidderRequest?.ortb2?.device ? deepClone(bidderRequest?.ortb2?.device) : {};
-
-	// delete device.devicetype if invalid
-	if (!Number.isInteger(device.devicetype)) {
-		delete device.devicetype;
-	}
+  const gpid = bid?.ortb2Imp?.ext?.gpid || '';
+  const cat = bidderRequest?.ortb2?.site?.cat || [];
+  const pagecat = bidderRequest?.ortb2?.site?.pagecat || [];
+  const contentData = bidderRequest?.ortb2?.site?.content?.data || [];
+  const userData = bidderRequest?.ortb2?.user?.data || [];
+  const contentLang = bidderRequest?.ortb2?.site?.content?.language || document.documentElement.lang;
+  const coppa = bidderRequest?.ortb2?.regs?.coppa ?? 0;
+  const device = bidderRequest?.ortb2?.device || {};
 
 	if (isFn(bid.getFloor)) {
 		const floorInfo = bid.getFloor({
