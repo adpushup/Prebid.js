@@ -232,7 +232,7 @@ export function bidToVideoImp(bid) {
 
   imp.video = videoParamRef ? deepClone(bid.params.video) : {};
   // populate imp level transactionId
-  let tid = deepAccess(bid, 'ortb2Imp.ext.tid');
+  const tid = deepAccess(bid, 'ortb2Imp.ext.tid');
   if (tid) {
     deepSetValue(imp, 'ext.tid', tid);
   }
@@ -324,7 +324,7 @@ export function bidToNativeImp(bid) {
   };
 
   // populate imp level transactionId
-  let tid = deepAccess(bid, 'ortb2Imp.ext.tid');
+  const tid = deepAccess(bid, 'ortb2Imp.ext.tid');
   if (tid) {
     deepSetValue(imp, 'ext.tid', tid);
   }
@@ -566,7 +566,7 @@ function checkVideoParams(mediaTypeVideoRef, paramsVideoRef) {
     logWarn('IX Bid Adapter: mediaTypes.video is the preferred location for video params in ad unit');
   }
 
-  for (let property of REQUIRED_VIDEO_PARAMS) {
+  for (const property of REQUIRED_VIDEO_PARAMS) {
     const propInMediaType = mediaTypeVideoRef && mediaTypeVideoRef.hasOwnProperty(property);
     const propInVideoRef = paramsVideoRef && paramsVideoRef.hasOwnProperty(property);
 
@@ -654,8 +654,8 @@ function getBidRequest(id, impressions, validBidRequests) {
  *                  identity info from IX Library)
  */
 function getEidInfo(allEids) {
-  let toSend = [];
-  let seenSources = {};
+  const toSend = [];
+  const seenSources = {};
   if (isArray(allEids)) {
     for (const eid of allEids) {
       const isSourceMapped = SOURCE_RTI_MAPPING.hasOwnProperty(eid.source);
@@ -692,10 +692,10 @@ function getEidInfo(allEids) {
  */
 function buildRequest(validBidRequests, bidderRequest, impressions, version) {
   // Always use secure HTTPS protocol.
-  let baseUrl = SECURE_BID_URL;
+  const baseUrl = SECURE_BID_URL;
   // Get ids from Prebid User ID Modules
-  let eidInfo = getEidInfo(deepAccess(validBidRequests, '0.userIdAsEids'));
-  let userEids = eidInfo.toSend;
+  const eidInfo = getEidInfo(deepAccess(validBidRequests, '0.userIdAsEids'));
+  const userEids = eidInfo.toSend;
 
   // RTI ids will be included in the bid request if the function getIdentityInfo() is loaded
   // and if the data for the partner exist
@@ -711,8 +711,8 @@ function buildRequest(validBidRequests, bidderRequest, impressions, version) {
 
   // getting ixdiags for adunits of the video, outstream & multi format (MF) style
   const fledgeEnabled = deepAccess(bidderRequest, 'paapi.enabled')
-  let ixdiag = buildIXDiag(validBidRequests, fledgeEnabled);
-  for (let key in ixdiag) {
+  const ixdiag = buildIXDiag(validBidRequests, fledgeEnabled);
+  for (const key in ixdiag) {
     r.ext.ixdiag[key] = ixdiag[key];
   }
 
@@ -720,7 +720,7 @@ function buildRequest(validBidRequests, bidderRequest, impressions, version) {
 
   r = applyRegulations(r, bidderRequest);
 
-  let payload = {};
+  const payload = {};
   if (validBidRequests[0].params.siteId) {
     siteID = validBidRequests[0].params.siteId;
     payload.s = siteID;
@@ -796,14 +796,14 @@ function buildRequest(validBidRequests, bidderRequest, impressions, version) {
  * @param {Array} eidInfo eidInfo info from prebid
  */
 function addRTI(userEids, eidInfo) {
-  let identityInfo = window.headertag.getIdentityInfo();
+  const identityInfo = window.headertag.getIdentityInfo();
   if (identityInfo && typeof identityInfo === 'object') {
     for (const partnerName in identityInfo) {
       if (userEids.length >= MAX_EID_SOURCES) {
         return
       }
       if (identityInfo.hasOwnProperty(partnerName)) {
-        let response = identityInfo[partnerName];
+        const response = identityInfo[partnerName];
         if (!response.responsePending && response.data && typeof response.data === 'object' &&
           Object.keys(response.data).length && !eidInfo.seenSources[response.data.source]) {
           userEids.push(response.data);
@@ -994,7 +994,7 @@ function addImpressions(impressions, impKeys, r, adUnitIndex) {
     for (const impId in bannerImpsKeyed) {
       const bannerImps = bannerImpsKeyed[impId];
       const { id, banner: { topframe } } = bannerImps[0];
-      let externalID = deepAccess(bannerImps[0], 'ext.externalID');
+      const externalID = deepAccess(bannerImps[0], 'ext.externalID');
       const _bannerImpression = {
         id,
         banner: {
@@ -1304,8 +1304,8 @@ function buildIXDiag(validBidRequests, fledgeEnabled) {
     .map(bidRequest => bidRequest.adUnitCode)
     .filter((value, index, arr) => arr.indexOf(value) === index);
 
-  let allEids = deepAccess(validBidRequests, '0.userIdAsEids', [])
-  let ixdiag = {
+  const allEids = deepAccess(validBidRequests, '0.userIdAsEids', [])
+  const ixdiag = {
     mfu: 0,
     bu: 0,
     iu: 0,
@@ -1321,8 +1321,8 @@ function buildIXDiag(validBidRequests, fledgeEnabled) {
   };
 
   // create ad unit map and collect the required diag properties
-  for (let adUnit of adUnitMap) {
-    let bid = validBidRequests.filter(bidRequest => bidRequest.adUnitCode === adUnit)[0];
+  for (const adUnit of adUnitMap) {
+    const bid = validBidRequests.filter(bidRequest => bidRequest.adUnitCode === adUnit)[0];
 
     if (deepAccess(bid, 'mediaTypes')) {
       if (Object.keys(bid.mediaTypes).length > 1) {
@@ -1427,7 +1427,7 @@ function createVideoImps(validBidRequest, videoImps) {
  * @param {object}  bannerImps reference to created banner impressions
  */
 function createBannerImps(validBidRequest, missingBannerSizes, bannerImps, bidderRequest) {
-  let imp = bidToBannerImp(validBidRequest);
+  const imp = bidToBannerImp(validBidRequest);
 
   const bannerSizeDefined = includesSize(deepAccess(validBidRequest, 'mediaTypes.banner.sizes'), deepAccess(validBidRequest, 'params.size'));
 
@@ -1506,7 +1506,7 @@ function updateMissingSizes(validBidRequest, missingBannerSizes, imp) {
       let sizes = validBidRequest.mediaTypes.banner.sizes
       let sizeList = deepClone(sizes.filter(size => apIsValidSize(...size)));
       removeFromSizes(sizeList, validBidRequest.params.size);
-      let newAdUnitEntry = {
+      const newAdUnitEntry = {
         'missingSizes': sizeList,
         'impression': imp
       };
@@ -1597,7 +1597,7 @@ function isIndexRendererPreferred(bid) {
 }
 
 function isExchangeIdConfigured() {
-  let exchangeId = config.getConfig('exchangeId');
+  const exchangeId = config.getConfig('exchangeId');
   if (typeof exchangeId === 'number' && isFinite(exchangeId)) {
     return true;
   }
@@ -1742,9 +1742,9 @@ export const spec = {
     });
 
     // Step 2: Update banner impressions with missing sizes
-    for (let adunitCode in missingBannerSizes) {
+    for (const adunitCode in missingBannerSizes) {
       if (missingBannerSizes.hasOwnProperty(adunitCode)) {
-        let missingSizes = missingBannerSizes[adunitCode].missingSizes;
+        const missingSizes = missingBannerSizes[adunitCode].missingSizes;
 
         if (!bannerImps.hasOwnProperty(adunitCode)) {
           bannerImps[adunitCode] = {};
@@ -1754,9 +1754,9 @@ export const spec = {
           bannerImps[adunitCode].missingCount = 0;
         }
 
-        let origImp = missingBannerSizes[adunitCode].impression;
+        const origImp = missingBannerSizes[adunitCode].impression;
         for (let i = 0; i < missingSizes.length; i++) {
-          let newImp = createMissingBannerImp(validBidRequests[0], origImp, missingSizes[i]);
+          const newImp = createMissingBannerImp(validBidRequests[0], origImp, missingSizes[i]);
           bannerImps[adunitCode].missingImps.push(newImp);
           bannerImps[adunitCode].missingCount++;
         }
@@ -1764,7 +1764,7 @@ export const spec = {
     }
 
     // Step 3: Build banner, video & native requests
-    let allImps = [];
+    const allImps = [];
     if (Object.keys(bannerImps).length > 0) {
       allImps.push(bannerImps);
     }
@@ -1932,7 +1932,7 @@ function buildImgSyncUrl(syncsPerBidder, index) {
   if (gdprConsent && gdprConsent.hasOwnProperty('consentString')) {
     consentString = gdprConsent.consentString || '';
   }
-  let siteIdParam = siteID !== 0 ? '&site_id=' + siteID.toString() : '';
+  const siteIdParam = siteID !== 0 ? '&site_id=' + siteID.toString() : '';
 
   return IMG_USER_SYNC_URL + siteIdParam + '&p=' + syncsPerBidder.toString() + '&i=' + index.toString() + '&gdpr=' + gdprApplies + '&gdpr_consent=' + consentString + '&us_privacy=' + (usPrivacy || '');
 }

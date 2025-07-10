@@ -382,39 +382,39 @@ export function buildRequestData(
 		}
 	}
 
-	const data = {
-		url: encodeURIComponent(topWindowUrl),
-		uqs: getTopWindowQueryParams(),
-		cb: Date.now(),
-		bidFloor: bidFloor,
-		bidId: bidId,
-		referrer: bidderRequest.refererInfo.ref,
-		adUnitCode: adUnitCode,
-		publisherId: pId,
-		sizes: sizes,
-		uniqueDealId: uniqueDealId,
-		bidderVersion: bidderVersion,
-		prebidVersion: '$prebid.version$',
-		res: getScreenResolution(),
-		schain: schain,
-		mediaTypes: mediaTypes,
-		isStorageAllowed: isStorageAllowed,
-		gpid: gpid,
-		cat: cat,
-		contentData,
-		contentLang,
-		coppa,
-		userData: userData,
-		pagecat: pagecat,
-		transactionId: ortb2Imp?.ext?.tid,
-		bidderRequestId: bidderRequestId,
-		bidRequestsCount: bidRequestsCount,
-		bidderRequestsCount: bidderRequestsCount,
-		bidderWinsCount: bidderWinsCount,
-		bidderTimeout: bidderTimeout,
-		device,
-		...uniqueRequestData
-	};
+  const data = {
+    url: encodeURIComponent(topWindowUrl),
+    uqs: getTopWindowQueryParams(),
+    cb: Date.now(),
+    bidFloor: bidFloor,
+    bidId: bidId,
+    referrer: bidderRequest.refererInfo.ref,
+    adUnitCode: adUnitCode,
+    publisherId: pId,
+    sizes: sizes,
+    uniqueDealId: uniqueDealId,
+    bidderVersion: bidderVersion,
+    prebidVersion: '$prebid.version$',
+    res: `${screen.width}x${screen.height}`,
+    schain: schain,
+    mediaTypes: mediaTypes,
+    isStorageAllowed: isStorageAllowed,
+    gpid: gpid,
+    cat: cat,
+    contentData,
+    contentLang,
+    coppa,
+    userData: userData,
+    pagecat: pagecat,
+    transactionId: ortb2Imp?.ext?.tid,
+    bidderRequestId: bidderRequestId,
+    bidRequestsCount: bidRequestsCount,
+    bidderRequestsCount: bidderRequestsCount,
+    bidderWinsCount: bidderWinsCount,
+    bidderTimeout: bidderTimeout,
+    device,
+    ...uniqueRequestData
+  };
 
 	// backward compatible userId generators
 	if (bid.userIdAsEids?.length > 0) {
@@ -507,7 +507,7 @@ export function createInterpretResponseFn(bidderCode, allowSingleRequest) {
 		const reqBidId = request?.data?.bidId;
 		const { results } = serverResponse.body;
 
-		const output = [];
+    const output = [];
 
 		try {
 			results.forEach((result, i) => {
