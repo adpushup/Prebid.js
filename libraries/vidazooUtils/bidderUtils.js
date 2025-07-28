@@ -464,13 +464,13 @@ export function buildRequestData(
 		}
 	}
 
-	const dsa = bidderRequest?.ortb2?.regs?.ext?.dsa;
-	if (dsa) {
-		data.dsa = dsa;
-	}
-	if (params.placementId) {
-		data.placementId = params.placementId;
-	}
+  const dsa = bidderRequest?.ortb2?.regs?.ext?.dsa;
+  if (dsa) {
+    data.dsa = dsa;
+  }
+  if (params.placementId) {
+    data.placementId = params.placementId;
+  }
 
 	_each(ext, (value, key) => {
 		data['ext.' + key] = value;
