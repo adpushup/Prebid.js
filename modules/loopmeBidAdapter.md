@@ -11,7 +11,6 @@ Maintainer:   support@loopme.com
 Connect to LoopMe's exchange for bids.
 
 # Test Parameters (Banner)
-
 ```
 var adUnits = [{
     code: 'banner1',
@@ -32,7 +31,6 @@ var adUnits = [{
 ```
 
 # Test Parameters (Video)
-
 ```
 var adUnits = [{
     code: 'video1',
@@ -54,7 +52,6 @@ var adUnits = [{
 ```
 
 # Test Parameters (Native)
-
 ```
 var adUnits = [{
     code: 'native1',
@@ -94,9 +91,8 @@ var adUnits = [{
 ```
 
 # Bid params
-
-| Name          | Scope    | Description                  | Example       |
-| :------------ | :------- | :--------------------------- | :------------ |
-| `publisherId` | required | Manually set up publisher ID | `publisherId` |
-| `bundleId`    | optional | Manually set up bundle ID    | `bundleId`    |
-| `placementId` | optional | Manually set up placement ID | `placementId` |
+| Name          | Scope    | Description                            | Example                              |
+|:--------------| :------- |:---------------------------------------|:-------------------------------------|
+| `publisherId` | required | Manually set up publisher ID | `publisherId`|
+| `bundleId` | optional | Manually set up bundle ID | `bundleId`|
+| `placementId` | optional | Manually set up placement ID | `placementId`|
