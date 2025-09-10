@@ -14,8 +14,8 @@ import { config } from '../src/config.js';
 
 const BIDDER_CODE = 'ssp_geniee';
 export const BANNER_ENDPOINT = 'https://aladdin.genieesspv.jp/yie/ld/api/ad_call/v2';
-export const USER_SYNC_ENDPOINT = 'https://cs.gssprt.jp/yie/ld/mcs';
-// export const ENDPOINT_USERSYNC = '';
+export const USER_SYNC_ENDPOINT_IMAGE = 'https://cs.gssprt.jp/yie/ld/mcs';
+export const USER_SYNC_ENDPOINT_IFRAME = 'https://aladdin.genieesspv.jp/yie/ld';
 const SUPPORTED_MEDIA_TYPES = [ BANNER ];
 const DEFAULT_CURRENCY = 'JPY';
 const ALLOWED_CURRENCIES = ['USD', 'JPY'];
@@ -159,6 +159,11 @@ function makeCommonRequestData(bid, geparameter, refererInfo) {
     cks: 1,
     ...(gpid ? { gpid } : {}),
   };
+
+  const pageTitle = document.title;
+  if (pageTitle) {
+    data.title = encodeURIComponentIncludeSingleQuotation(pageTitle);
+  }
 
   try {
     if (window.self.toString() !== '[object Window]' || window.parent.toString() !== '[object Window]') {
@@ -418,14 +423,16 @@ export const spec = {
     }
 
     serverResponses.forEach((serverResponse) => {
-      if (!serverResponse || !serverResponse.body) {
-        return;
-    }
+      if (!serverResponse || !serverResponse.body) return;
 
-    const values = Object.values(serverResponse.body);
-    if (!values.length || !values[0]) {
-      return;
-    }
+      const bids = Object.values(serverResponse.body).filter(Boolean);
+      if (!bids.length) return;
+
+      bids.forEach(bid => {
+        if (syncOptions.iframeEnabled && bid.cs_url) {
+          syncs.push({ type: 'iframe', url: USER_SYNC_ENDPOINT_IFRAME + bid.cs_url });
+          return;
+        }
 
     const bid = values[0];
     const decodedAdm = decodeURIComponent(bid.adm)
