@@ -63,6 +63,15 @@ function buildRequests(bidReqs, bidderRequest) {
         tagid: String(bid.adUnitCode)
       };
 
+      if (bid?.mediaTypes?.banner) {
+        imp.banner = {
+          format: processedSizes,
+          ext: {
+            viewability: viewabilityAmountRounded,
+          }
+        }
+      }
+
       if (bid?.mediaTypes?.video) {
         imp.video = {
           ...bid.mediaTypes.video,
