@@ -1,14 +1,13 @@
 import {
-	_each,
-	formatQS,
-	isArray,
-	isFn,
-	parseSizesInput,
-	parseUrl,
-	triggerPixel,
-	uniques,
-	getWinDimensions,
-	deepClone
+  _each,
+  formatQS,
+  isArray,
+  isFn,
+  parseSizesInput,
+  parseUrl,
+  triggerPixel,
+  uniques,
+  getWinDimensions
 } from '../../src/utils.js';
 import { chunk } from '../chunk/chunk.js';
 import {
@@ -385,7 +384,7 @@ export function buildRequestData(bid, topWindowUrl, sizes, bidderRequest, bidder
     uniqueDealId: uniqueDealId,
     bidderVersion: bidderVersion,
     prebidVersion: '$prebid.version$',
-    res: `${screen.width}x${screen.height}`,
+    res: getScreenResolution(),
     schain: schain,
     mediaTypes: mediaTypes,
     isStorageAllowed: isStorageAllowed,
@@ -473,12 +472,12 @@ export function buildRequestData(bid, topWindowUrl, sizes, bidderRequest, bidder
 }
 
 function getScreenResolution() {
-	const dimensions = getWinDimensions();
-	const width = dimensions?.screen?.width;
-	const height = dimensions?.screen?.height;
-	if (width != null && height != null) {
-		return `${width}x${height}`;
-	}
+  const dimensions = getWinDimensions();
+  const width = dimensions?.screen?.width;
+  const height = dimensions?.screen?.height;
+  if (width != null && height != null) {
+    return `${width}x${height}`
+  }
 }
 
 export function createInterpretResponseFn(bidderCode, allowSingleRequest) {
