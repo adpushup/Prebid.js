@@ -1,11 +1,11 @@
-import {getDNT} from '../libraries/dnt/index.js';
-import { BANNER, NATIVE, VIDEO } from '../src/mediaTypes.js';
-import { config } from '../src/config.js';
-import { ortbConverter } from '../libraries/ortbConverter/converter.js';
+import { getDNT } from '../libraries/dnt/index.js';
 import { handleCookieSync, PID_STORAGE_NAME, prepareSplitImps } from '../libraries/equativUtils/equativUtils.js';
+import { ortbConverter } from '../libraries/ortbConverter/converter.js';
 import { registerBidder } from '../src/adapters/bidderFactory.js';
-import { deepAccess, generateUUID, inIframe, isPlainObject, logWarn, mergeDeep } from '../src/utils.js';
+import { config } from '../src/config.js';
+import { BANNER, NATIVE, VIDEO } from '../src/mediaTypes.js';
 import { getStorageManager } from '../src/storageManager.js';
+import { deepAccess, generateUUID, inIframe, isPlainObject, logWarn, mergeDeep } from '../src/utils.js';
 
 const VERSION = '4.3.0';
 const BIDDER_CODE = 'sharethrough';
@@ -45,8 +45,8 @@ export const sharethroughInternal = {
 export const converter = ortbConverter({
   context: {
     netRevenue: true,
-    ttl: 360
-  }
+    ttl: 360,
+  },
 });
 
 export const sharethroughAdapterSpec = {
@@ -99,7 +99,7 @@ export const sharethroughAdapterSpec = {
       test: 0,
     };
 
-    req.user = firstPartyData.user ?? {}
+    req.user = firstPartyData.user ?? {};
     if (!req.user.ext) req.user.ext = {};
     req.user.ext.eids = bidRequests[0].userIdAsEids || [];
 
@@ -108,7 +108,7 @@ export const sharethroughAdapterSpec = {
       eqtvNetworkId = bidRequests[0].params.equativNetworkId;
       req.site.publisher = {
         id: bidRequests[0].params.equativNetworkId,
-        ...req.site.publisher
+        ...req.site.publisher,
       };
       const pid = storage.getDataFromLocalStorage(PID_STORAGE_NAME);
       if (pid) {
@@ -221,7 +221,8 @@ export const sharethroughAdapterSpec = {
             topframe: inIframe() ? 0 : 1,
             format: bidReq.sizes.map((size) => ({ w: +size[0], h: +size[1] })),
           };
-          const battr = deepAccess(bidReq, 'mediaTypes.banner.battr', null) || deepAccess(bidReq, 'ortb2Imp.banner.battr');
+          const battr =
+            deepAccess(bidReq, 'mediaTypes.banner.battr', null) || deepAccess(bidReq, 'ortb2Imp.banner.battr');
           if (battr) impression.banner.battr = battr;
         }
 
@@ -237,7 +238,7 @@ export const sharethroughAdapterSpec = {
       })
       .filter((imp) => !!imp);
 
-    let splitImps = []
+    let splitImps = [];
     if (isEqtvTest) {
       const bid = bidRequests[0];
       const currency = config.getConfig('currency.adServerCurrency') || 'USD';
@@ -298,8 +299,8 @@ export const sharethroughAdapterSpec = {
           brandName: bid.ext?.brandName || null,
           demandSource: bid.ext?.demandSource || null,
           dchain: bid.ext?.dchain || null,
-          primaryCatId: bid.ext?.primaryCatId || null,
-          secondaryCatIds: bid.ext?.secondaryCatIds || null,
+          primaryCatId: bid.ext?.primaryCatId || '',
+          secondaryCatIds: bid.ext?.secondaryCatIds || [],
           mediaType: bid.ext?.mediaType || null,
         },
       };
@@ -309,7 +310,7 @@ export const sharethroughAdapterSpec = {
         response.vastXml = bid.adm;
       } else if (response.mediaType === NATIVE) {
         response.native = {
-          ortb: JSON.parse(bid.adm)
+          ortb: JSON.parse(bid.adm),
         };
       }
 
@@ -328,7 +329,7 @@ export const sharethroughAdapterSpec = {
 
   getUserSyncs: (syncOptions, serverResponses, gdprConsent) => {
     if (isEqtvTest) {
-      return handleCookieSync(syncOptions, serverResponses, gdprConsent, eqtvNetworkId, storage)
+      return handleCookieSync(syncOptions, serverResponses, gdprConsent, eqtvNetworkId, storage);
     } else {
       const shouldCookieSync =
         syncOptions.pixelEnabled && deepAccess(serverResponses, '0.body.cookieSyncUrls') !== undefined;
@@ -338,13 +339,13 @@ export const sharethroughAdapterSpec = {
   },
 
   // Empty implementation for prebid core to be able to find it
-  onTimeout: (data) => { },
+  onTimeout: (data) => {},
 
   // Empty implementation for prebid core to be able to find it
-  onBidWon: (bid) => { },
+  onBidWon: (bid) => {},
 
   // Empty implementation for prebid core to be able to find it
-  onSetTargeting: (bid) => { },
+  onSetTargeting: (bid) => {},
 };
 
 function getBidRequestFloor(bid) {
