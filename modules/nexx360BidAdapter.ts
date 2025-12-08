@@ -60,7 +60,6 @@ const ALIASES = [
   { code: 'revnew', gvlid: 1468 },
   { code: 'movingup', gvlid: 1416 },
   { code: 'glomexbidder', gvlid: 967 },
-  { code: 'revnew', gvlid: 1468 },
   { code: 'pubxai', gvlid: 1485 },
   { code: 'ybidder', gvlid: 1253 },
 ];
