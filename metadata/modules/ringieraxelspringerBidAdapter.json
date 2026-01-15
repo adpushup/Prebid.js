@@ -4,8 +4,15 @@
   "components": [
     {
       "componentType": "bidder",
-      "componentName": "ringieraxelspringer",
+      "componentName": "das",
       "aliasOf": null,
+      "gvlid": null,
+      "disclosureURL": null
+    },
+    {
+      "componentType": "bidder",
+      "componentName": "ringieraxelspringer",
+      "aliasOf": "das",
       "gvlid": null,
       "disclosureURL": null
     }
