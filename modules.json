@@ -18,5 +18,9 @@
 	"priceFloors",
 	"currency",
 	"pubxaiAnalyticsAdapter",
-	"gamoshiBidAdapter"
+	"gamoshiBidAdapter",
+	"kueezRtbBidAdapter", 
+	"riseBidAdapter", 
+	"openxBidAdapter",
+	"msftBidAdapter"
 ]
