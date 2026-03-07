@@ -2,10 +2,10 @@
  * @module modules/luceadBidAdapter
  */
 
-import {ortbConverter} from '../libraries/ortbConverter/converter.js';
-import {registerBidder} from '../src/adapters/bidderFactory.js';
-import {getUniqueIdentifierStr, deepSetValue, logInfo} from '../src/utils.js';
-import {fetch} from '../src/ajax.js';
+import { ortbConverter } from '../libraries/ortbConverter/converter.js';
+import { registerBidder } from '../src/adapters/bidderFactory.js';
+import { getUniqueIdentifierStr, deepSetValue, logInfo } from '../src/utils.js';
+import { fetch } from '../src/ajax.js';
 
 const bidderCode = 'lucead';
 const defaultCurrency = 'EUR';
@@ -117,7 +117,7 @@ function interpretResponse(serverResponse, bidRequest) {
     },
   }));
 
-  logInfo('interpretResponse', {serverResponse, bidRequest, bidRequestData, bids});
+  logInfo('interpretResponse', { serverResponse, bidRequest, bidRequestData, bids });
 
   if (response?.enable_pa === false) { return bids; }
 
@@ -145,7 +145,7 @@ function interpretResponse(serverResponse, bidRequest) {
     }
   }));
 
-  return {bids, paapi: fledgeAuctionConfigs};
+  return { bids, paapi: fledgeAuctionConfigs };
 }
 
 function report(type, data) {

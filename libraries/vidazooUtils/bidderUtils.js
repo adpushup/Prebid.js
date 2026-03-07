@@ -10,16 +10,7 @@ import {
   getWinDimensions
 } from '../../src/utils.js';
 import { chunk } from '../chunk/chunk.js';
-import {
-	CURRENCY,
-	DEAL_ID_EXPIRY,
-	IFRAME_SYNC_DEFAULT_URL,
-	IMAGE_SYNC_DEFAULT_URL,
-	MULTI_REQ_LIST,
-	SESSION_ID_KEY,
-	TTL_SECONDS,
-	UNIQUE_DEAL_ID_EXPIRY
-} from './constants.js';
+import { CURRENCY, DEAL_ID_EXPIRY, SESSION_ID_KEY, TTL_SECONDS, UNIQUE_DEAL_ID_EXPIRY } from './constants.js';
 import { bidderSettings } from '../../src/bidderSettings.js';
 import { config } from '../../src/config.js';
 import { BANNER, VIDEO } from '../../src/mediaTypes.js';
@@ -29,12 +20,12 @@ export function createSessionId() {
 }
 
 export function getTopWindowQueryParams() {
-	try {
-		const parsedUrl = parseUrl(window.top.document.URL, { decodeSearchAsString: true });
-		return parsedUrl.search;
-	} catch (e) {
-		return '';
-	}
+  try {
+    const parsedUrl = parseUrl(window.top.document.URL, { decodeSearchAsString: true });
+    return parsedUrl.search;
+  } catch (e) {
+    return '';
+  }
 }
 
 function isValidParamsHost(params) {
@@ -95,11 +86,12 @@ export function tryParseJSON(value) {
 }
 
 export function setStorageItem(storage, key, value, timestamp) {
-	try {
-		const created = timestamp || Date.now();
-		const data = JSON.stringify({ value, created });
-		storage.setDataInLocalStorage(key, data);
-	} catch (e) {}
+  try {
+    const created = timestamp || Date.now();
+    const data = JSON.stringify({ value, created });
+    storage.setDataInLocalStorage(key, data);
+  } catch (e) {
+  }
 }
 
 export function getStorageItem(storage, key) {
@@ -225,24 +217,16 @@ export function onBidBillable(bid) {
  *
  * @param options
  */
-export function createUserSyncGetter(
-	options = {
-		iframeSyncUrl: '',
-		imageSyncUrl: ''
-	}
-) {
-	return function getUserSyncs(
-		syncOptions,
-		responses,
-		gdprConsent = {},
-		uspConsent = '',
-		gppConsent = {}
-	) {
-		const syncs = [];
-		const { iframeEnabled, pixelEnabled } = syncOptions;
-		const { gdprApplies, consentString = '' } = gdprConsent;
-		const { gppString, applicableSections } = gppConsent;
-		const coppa = config.getConfig('coppa') ? 1 : 0;
+export function createUserSyncGetter(options = {
+  iframeSyncUrl: '',
+  imageSyncUrl: ''
+}) {
+  return function getUserSyncs(syncOptions, responses, gdprConsent = {}, uspConsent = '', gppConsent = {}) {
+    const syncs = [];
+    const { iframeEnabled, pixelEnabled } = syncOptions;
+    const { gdprApplies, consentString = '' } = gdprConsent;
+    const { gppString, applicableSections } = gppConsent;
+    const coppa = config.getConfig('coppa') ? 1 : 0;
 
 		const cidArr = responses
 			.filter((resp) => resp?.body?.cid)
@@ -342,8 +326,8 @@ export function buildRequestData(bid, topWindowUrl, sizes, bidderRequest, bidder
     bidderRequestsCount,
     bidderWinsCount
   } = bid;
-  const {ext} = params;
-  let {bidFloor} = params;
+  const { ext } = params;
+  let { bidFloor } = params;
   const hashUrl = hashCode(topWindowUrl);
   const uniqueRequestData = isFn(getUniqueRequestData) ? getUniqueRequestData(hashUrl, bid) : {};
   const uniqueDealId = getUniqueDealId(storage, hashUrl);
@@ -486,10 +470,9 @@ export function createInterpretResponseFn(bidderCode, allowSingleRequest) {
 			return [];
 		}
 
-		const allowed = allowSingleRequest && MULTI_REQ_LIST.includes(bidderCode);
-		const singleRequestMode = allowed && config.getConfig(`${bidderCode}.singleRequest`);
-		const reqBidId = request?.data?.bidId;
-		const { results } = serverResponse.body;
+    const singleRequestMode = allowSingleRequest && config.getConfig(`${bidderCode}.singleRequest`);
+    const reqBidId = request?.data?.bidId;
+    const { results } = serverResponse.body;
 
     const output = [];
 
@@ -564,71 +547,27 @@ export function createInterpretResponseFn(bidderCode, allowSingleRequest) {
 	};
 }
 
-export function createBuildRequestsFn(
-	createRequestDomain,
-	createUniqueRequestData,
-	storage,
-	bidderCode,
-	bidderVersion,
-	allowSingleRequest
-) {
-	function buildRequest(bid, topWindowUrl, sizes, bidderRequest, bidderTimeout) {
-		const { params } = bid;
-		const cId = extractCID(params);
-		const subDomain = extractSubDomain(params);
-		const data = buildRequestData(
-			bid,
-			topWindowUrl,
-			sizes,
-			bidderRequest,
-			bidderTimeout,
-			storage,
-			bidderVersion,
-			bidderCode,
-			createUniqueRequestData
-		);
-		// when params are populated with valid host (params: {host: "example.com"} try to add host to url
-		if (isValidParamsHost(params)) {
-			return {
-				method: 'POST',
-				url: `${createRequestDomain(subDomain, params.host)}/prebid/multi/${cId}`,
-				data: data
-			};
-		} else {
-			return {
-				method: 'POST',
-				url: `${createRequestDomain(subDomain)}/prebid/multi/${cId}`,
-				data: data
-			};
-		}
-	}
+export function createBuildRequestsFn(createRequestDomain, createUniqueRequestData, storage, bidderCode, bidderVersion, allowSingleRequest) {
+  function buildRequest(bid, topWindowUrl, sizes, bidderRequest, bidderTimeout) {
+    const { params } = bid;
+    const cId = extractCID(params);
+    const subDomain = extractSubDomain(params);
+    const data = buildRequestData(bid, topWindowUrl, sizes, bidderRequest, bidderTimeout, storage, bidderVersion, bidderCode, createUniqueRequestData);
+    const dto = {
+      method: 'POST', url: `${createRequestDomain(subDomain)}/prebid/multi/${cId}`, data: data
+    };
+    return dto;
+  }
 
-	function buildSingleRequest(bidRequests, bidderRequest, topWindowUrl, bidderTimeout) {
-		const { params } = bidRequests[0];
-		const cId = extractCID(params);
-		const subDomain = extractSubDomain(params);
-		const data = bidRequests.map((bid) => {
-			const sizes = parseSizesInput(bid.sizes);
-			return buildRequestData(
-				bid,
-				topWindowUrl,
-				sizes,
-				bidderRequest,
-				bidderTimeout,
-				storage,
-				bidderVersion,
-				bidderCode,
-				createUniqueRequestData
-			);
-		});
-		let chSize = 10;
-		if (
-			config.getConfig(`${bidderCode}.chunkSize`) &&
-			typeof config.getConfig(`${bidderCode}.chunkSize`) === 'number'
-		) {
-			chSize = config.getConfig(`${bidderCode}.chunkSize`);
-		}
-		const chunkSize = Math.min(20, chSize);
+  function buildSingleRequest(bidRequests, bidderRequest, topWindowUrl, bidderTimeout) {
+    const { params } = bidRequests[0];
+    const cId = extractCID(params);
+    const subDomain = extractSubDomain(params);
+    const data = bidRequests.map(bid => {
+      const sizes = parseSizesInput(bid.sizes);
+      return buildRequestData(bid, topWindowUrl, sizes, bidderRequest, bidderTimeout, storage, bidderVersion, bidderCode, createUniqueRequestData)
+    });
+    const chunkSize = Math.min(20, config.getConfig(`${bidderCode}.chunkSize`) || 10);
 
 		const chunkedData = chunk(data, chunkSize);
 		return chunkedData.map((chunk) => {
