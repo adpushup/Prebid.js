@@ -435,6 +435,7 @@ function _mapAdUnitPathToElementId(adUnitCode) {
 }
 
 function _getAdSlotHTMLElement(adUnitCode) {
+  // TODO: this should use getAdUnitElement
   return document.getElementById(adUnitCode) ||
     document.getElementById(_mapAdUnitPathToElementId(adUnitCode));
 }

@@ -418,13 +418,13 @@ export function buildRequestData(bid, topWindowUrl, sizes, bidderRequest, bidder
 		data.usPrivacy = bidderRequest.uspConsent;
 	}
 
-	if (bidderRequest.gppConsent) {
-		data.gppString = bidderRequest.gppConsent.gppString;
-		data.gppSid = bidderRequest.gppConsent.applicableSections;
-	} else if (bidderRequest.ortb2?.regs?.gpp) {
-		data.gppString = bidderRequest.ortb2.regs.gpp;
-		data.gppSid = bidderRequest.ortb2.regs.gpp_sid;
-	}
+  if (bidderRequest.gppConsent) {
+    data.gppString = bidderRequest.gppConsent.gppString;
+    data.gppSid = bidderRequest.gppConsent.applicableSections;
+  } else if (bidderRequest.ortb2?.regs?.gpp) {
+    data.gppString = bidderRequest.ortb2.regs.gpp;
+    data.gppSid = bidderRequest.ortb2.regs.gpp_sid;
+  }
 
 	const api = mediaTypes?.video?.api || [];
 	if (api.includes(7)) {
