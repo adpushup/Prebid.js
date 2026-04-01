@@ -1,5 +1,4 @@
 [
-	"appnexusBidAdapter",
 	"ixBidAdapter",
 	"rubiconBidAdapter",
 	"pubmaticBidAdapter",
@@ -18,5 +17,7 @@
 	"priceFloors",
 	"currency",
 	"pubxaiAnalyticsAdapter",
-	"gamoshiBidAdapter"
+	"gamoshiBidAdapter",
+	"sparteoBidAdapter",
+	"msftBidAdapter"
 ]
