@@ -10,7 +10,14 @@ import {
   getWinDimensions
 } from '../../src/utils.js';
 import { chunk } from '../chunk/chunk.js';
-import { CURRENCY, DEAL_ID_EXPIRY, SESSION_ID_KEY, TTL_SECONDS, UNIQUE_DEAL_ID_EXPIRY } from './constants.js';
+import {
+  CURRENCY,
+  DEAL_ID_EXPIRY, IFRAME_SYNC_DEFAULT_URL, IMAGE_SYNC_DEFAULT_URL,
+  MULTI_REQ_LIST,
+  SESSION_ID_KEY,
+  TTL_SECONDS,
+  UNIQUE_DEAL_ID_EXPIRY
+} from './constants.js';
 import { bidderSettings } from '../../src/bidderSettings.js';
 import { config } from '../../src/config.js';
 import { BANNER, VIDEO } from '../../src/mediaTypes.js';
@@ -29,10 +36,8 @@ export function getTopWindowQueryParams() {
 }
 
 function isValidParamsHost(params) {
-	// valid is params:{host: 'twist.win'}
-	return (
-		params && params.host && typeof params.host === 'string' && params.host.split('.').length === 2
-	);
+  // valid is params:{host: 'twist.win'}
+  return params && params.host && typeof params.host === 'string' && params.host.split('.').length === 2
 }
 
 export function extractCID(params) {
@@ -184,27 +189,27 @@ export function onBidWon(bid) {
 }
 
 export function onBidBillable(bid) {
-	if (!bid.burl) {
-		return;
-	}
-	const billBid = {
-		adId: bid.adId,
-		creativeId: bid.creativeId,
-		auctionId: bid.auctionId,
-		transactionId: bid.transactionId,
-		adUnitCode: bid.adUnitCode,
-		cpm: bid.cpm,
-		currency: bid.currency,
-		originalCpm: bid.originalCpm,
-		originalCurrency: bid.originalCurrency,
-		netRevenue: bid.netRevenue,
-		mediaType: bid.mediaType,
-		timeToRespond: bid.timeToRespond,
-		status: bid.status
-	};
-	const qs = formatQS(billBid);
-	const url = bid.burl + (bid.burl.indexOf('?') === -1 ? '?' : '&') + qs;
-	triggerPixel(url);
+  if (!bid.burl) {
+    return;
+  }
+  const billBid = {
+    adId: bid.adId,
+    creativeId: bid.creativeId,
+    auctionId: bid.auctionId,
+    transactionId: bid.transactionId,
+    adUnitCode: bid.adUnitCode,
+    cpm: bid.cpm,
+    currency: bid.currency,
+    originalCpm: bid.originalCpm,
+    originalCurrency: bid.originalCurrency,
+    netRevenue: bid.netRevenue,
+    mediaType: bid.mediaType,
+    timeToRespond: bid.timeToRespond,
+    status: bid.status,
+  };
+  const qs = formatQS(billBid);
+  const url = bid.burl + (bid.burl.indexOf('?') === -1 ? '?' : '&') + qs;
+  triggerPixel(url);
 }
 
 /**
@@ -228,59 +233,52 @@ export function createUserSyncGetter(options = {
     const { gppString, applicableSections } = gppConsent;
     const coppa = config.getConfig('coppa') ? 1 : 0;
 
-		const cidArr = responses
-			.filter((resp) => resp?.body?.cid)
-			.map((resp) => resp.body.cid)
-			.filter(uniques);
-		let params = `?cid=${encodeURIComponent(cidArr.join(','))}&gdpr=${
-			gdprApplies ? 1 : 0
-		}&gdpr_consent=${encodeURIComponent(consentString || '')}&us_privacy=${encodeURIComponent(
-			uspConsent || ''
-		)}&coppa=${encodeURIComponent(coppa)}`;
-		if (gppString && applicableSections?.length) {
-			params += '&gpp=' + encodeURIComponent(gppString);
-			params += '&gpp_sid=' + encodeURIComponent(applicableSections.join(','));
-		}
-		const UsBaseHeader = responses?.[0]?.headers?.get('x-us-base-url');
+    const cidArr = responses.filter(resp => resp?.body?.cid).map(resp => resp.body.cid).filter(uniques);
+    let params = `?cid=${encodeURIComponent(cidArr.join(','))}&gdpr=${gdprApplies ? 1 : 0}&gdpr_consent=${encodeURIComponent(consentString || '')}&us_privacy=${encodeURIComponent(uspConsent || '')}&coppa=${encodeURIComponent((coppa))}`;
+    if (gppString && applicableSections?.length) {
+      params += '&gpp=' + encodeURIComponent(gppString);
+      params += '&gpp_sid=' + encodeURIComponent(applicableSections.join(','));
+    }
+    const UsBaseHeader = responses?.[0]?.headers?.get('x-us-base-url')
 
-		if (iframeEnabled) {
-			if (options.iframeSyncUrl) {
-				syncs.push({
-					type: 'iframe',
-					url: `${options.iframeSyncUrl}/${params}`
-				});
-			} else if (UsBaseHeader) {
-				syncs.push({
-					type: 'iframe',
-					url: `https://sync.${UsBaseHeader}/api/sync/iframe/${params}`
-				});
-			} else {
-				syncs.push({
-					type: 'iframe',
-					url: `${IFRAME_SYNC_DEFAULT_URL}/${params}`
-				});
-			}
-		}
-		if (pixelEnabled) {
-			if (options.imageSyncUrl) {
-				syncs.push({
-					type: 'image',
-					url: `${options.imageSyncUrl}/${params}`
-				});
-			} else if (UsBaseHeader) {
-				syncs.push({
-					type: 'image',
-					url: `https://sync.${UsBaseHeader}/api/sync/image/${params}`
-				});
-			} else {
-				syncs.push({
-					type: 'image',
-					url: `${IMAGE_SYNC_DEFAULT_URL}/${params}`
-				});
-			}
-		}
-		return syncs;
-	};
+    if (iframeEnabled) {
+      if (options.iframeSyncUrl) {
+        syncs.push({
+          type: 'iframe',
+          url: `${options.iframeSyncUrl}/${params}`
+        });
+      } else if (UsBaseHeader) {
+        syncs.push({
+          type: 'iframe',
+          url: `https://sync.${UsBaseHeader}/api/sync/iframe/${params}`
+        });
+      } else {
+        syncs.push({
+          type: 'iframe',
+          url: `${IFRAME_SYNC_DEFAULT_URL}/${params}`
+        });
+      }
+    }
+    if (pixelEnabled) {
+      if (options.imageSyncUrl) {
+        syncs.push({
+          type: 'image',
+          url: `${options.imageSyncUrl}/${params}`
+        });
+      } else if (UsBaseHeader) {
+        syncs.push({
+          type: 'image',
+          url: `https://sync.${UsBaseHeader}/api/sync/image/${params}`
+        });
+      } else {
+        syncs.push({
+          type: 'image',
+          url: `${IMAGE_SYNC_DEFAULT_URL}/${params}`
+        });
+      }
+    }
+    return syncs;
+  }
 }
 
 export function appendUserIdsToRequestPayload(payloadRef, userIds) {
@@ -470,32 +468,33 @@ export function createInterpretResponseFn(bidderCode, allowSingleRequest) {
 			return [];
 		}
 
-    const singleRequestMode = allowSingleRequest && config.getConfig(`${bidderCode}.singleRequest`);
+    const allowed = allowSingleRequest && MULTI_REQ_LIST.includes(bidderCode)
+    const singleRequestMode = allowed && config.getConfig(`${bidderCode}.singleRequest`);
     const reqBidId = request?.data?.bidId;
     const { results } = serverResponse.body;
 
     const output = [];
 
-		try {
-			results.forEach((result, i) => {
-				const {
-					creativeId,
-					ad,
-					price,
-					exp,
-					width,
-					height,
-					currency,
-					bidId,
-					nurl,
-					burl,
-					advertiserDomains,
-					metaData,
-					mediaType = BANNER
-				} = result;
-				if (!ad || !price) {
-					return;
-				}
+    try {
+      results.forEach((result, i) => {
+        const {
+          creativeId,
+          ad,
+          price,
+          exp,
+          width,
+          height,
+          currency,
+          bidId,
+          nurl,
+          burl,
+          advertiserDomains,
+          metaData,
+          mediaType = BANNER
+        } = result;
+        if (!ad || !price) {
+          return;
+        }
 
 				const response = {
 					requestId: singleRequestMode && bidId ? bidId : reqBidId,
@@ -508,12 +507,12 @@ export function createInterpretResponseFn(bidderCode, allowSingleRequest) {
 					ttl: exp || TTL_SECONDS
 				};
 
-				if (nurl) {
-					response.nurl = nurl;
-				}
-				if (burl) {
-					response.burl = burl;
-				}
+        if (nurl) {
+          response.nurl = nurl;
+        }
+        if (burl) {
+          response.burl = burl;
+        }
 
 				if (metaData) {
 					Object.assign(response, {
@@ -553,10 +552,20 @@ export function createBuildRequestsFn(createRequestDomain, createUniqueRequestDa
     const cId = extractCID(params);
     const subDomain = extractSubDomain(params);
     const data = buildRequestData(bid, topWindowUrl, sizes, bidderRequest, bidderTimeout, storage, bidderVersion, bidderCode, createUniqueRequestData);
-    const dto = {
-      method: 'POST', url: `${createRequestDomain(subDomain)}/prebid/multi/${cId}`, data: data
-    };
-    return dto;
+    // when params are populated with valid host (params: {host: "example.com"} try to add host to url
+    if (isValidParamsHost(params)) {
+      return {
+        method: 'POST',
+        url: `${createRequestDomain(subDomain, params.host)}/prebid/multi/${cId}`,
+        data: data
+      };
+    } else {
+      return {
+        method: 'POST',
+        url: `${createRequestDomain(subDomain)}/prebid/multi/${cId}`,
+        data: data
+      };
+    }
   }
 
   function buildSingleRequest(bidRequests, bidderRequest, topWindowUrl, bidderTimeout) {
@@ -567,37 +576,41 @@ export function createBuildRequestsFn(createRequestDomain, createUniqueRequestDa
       const sizes = parseSizesInput(bid.sizes);
       return buildRequestData(bid, topWindowUrl, sizes, bidderRequest, bidderTimeout, storage, bidderVersion, bidderCode, createUniqueRequestData)
     });
-    const chunkSize = Math.min(20, config.getConfig(`${bidderCode}.chunkSize`) || 10);
+    let chSize = 10
+    if (config.getConfig(`${bidderCode}.chunkSize`) && typeof config.getConfig(`${bidderCode}.chunkSize`) === 'number') {
+      chSize = config.getConfig(`${bidderCode}.chunkSize`);
+    }
+    const chunkSize = Math.min(20, chSize);
 
-		const chunkedData = chunk(data, chunkSize);
-		return chunkedData.map((chunk) => {
-			if (isValidParamsHost(params)) {
-				return {
-					method: 'POST',
-					url: `${createRequestDomain(subDomain, params.host)}/prebid/multi/${cId}`,
-					data: {
-						bids: chunk
-					}
-				};
-			} else {
-				return {
-					method: 'POST',
-					url: `${createRequestDomain(subDomain)}/prebid/multi/${cId}`,
-					data: {
-						bids: chunk
-					}
-				};
-			}
-		});
-	}
+    const chunkedData = chunk(data, chunkSize);
+    return chunkedData.map(chunk => {
+      if (isValidParamsHost(params)) {
+        return {
+          method: 'POST',
+          url: `${createRequestDomain(subDomain, params.host)}/prebid/multi/${cId}`,
+          data: {
+            bids: chunk
+          }
+        };
+      } else {
+        return {
+          method: 'POST',
+          url: `${createRequestDomain(subDomain)}/prebid/multi/${cId}`,
+          data: {
+            bids: chunk
+          }
+        };
+      }
+    });
+  }
 
   // validBidRequests - an array of bids validated via the isBidRequestValid function.
   // bidderRequest    - an object with data common to all bid requests.
   return function buildRequests(validBidRequests, bidderRequest) {
     const topWindowUrl = bidderRequest.refererInfo.page || bidderRequest.refererInfo.topmostLocation;
     const bidderTimeout = bidderRequest.timeout || config.getConfig('bidderTimeout');
-
-    const singleRequestMode = allowSingleRequest && config.getConfig(`${bidderCode}.singleRequest`);
+    const allowed = allowSingleRequest && MULTI_REQ_LIST.includes(bidderCode)
+    const singleRequestMode = allowed && config.getConfig(`${bidderCode}.singleRequest`);
 
 		const requests = [];
 
@@ -618,35 +631,21 @@ export function createBuildRequestsFn(createRequestDomain, createUniqueRequestDa
 				requests.push(...singleRequests);
 			}
 
-			// video bids are sent as a single request for each bid
-			const videoBidRequests = validBidRequests.filter(
-				(bid) => bid.mediaTypes[VIDEO] !== undefined
-			);
-			videoBidRequests.forEach((validBidRequest) => {
-				const sizes = parseSizesInput(validBidRequest.sizes);
-				const request = buildRequest(
-					validBidRequest,
-					topWindowUrl,
-					sizes,
-					bidderRequest,
-					bidderTimeout
-				);
-				requests.push(request);
-			});
-		} else {
-			// bulk bids request
-			validBidRequests.forEach((validBidRequest) => {
-				const sizes = parseSizesInput(validBidRequest.sizes);
-				const request = buildRequest(
-					validBidRequest,
-					topWindowUrl,
-					sizes,
-					bidderRequest,
-					bidderTimeout
-				);
-				requests.push(request);
-			});
-		}
-		return requests;
-	};
+      // video bids are sent as a single request for each bid
+      const videoBidRequests = validBidRequests.filter(bid => bid.mediaTypes[VIDEO] !== undefined);
+      videoBidRequests.forEach(validBidRequest => {
+        const sizes = parseSizesInput(validBidRequest.sizes);
+        const request = buildRequest(validBidRequest, topWindowUrl, sizes, bidderRequest, bidderTimeout);
+        requests.push(request);
+      });
+    } else {
+      // bulk bids request
+      validBidRequests.forEach(validBidRequest => {
+        const sizes = parseSizesInput(validBidRequest.sizes);
+        const request = buildRequest(validBidRequest, topWindowUrl, sizes, bidderRequest, bidderTimeout);
+        requests.push(request);
+      });
+    }
+    return requests;
+  }
 }
