@@ -7,6 +7,10 @@ import { registerBidder } from '../src/adapters/bidderFactory.js';
 import { getUniqueIdentifierStr, deepSetValue, logInfo } from '../src/utils.js';
 import { fetch } from '../src/ajax.js';
 
+export const dep = {
+  fetch
+};
+
 const bidderCode = 'lucead';
 const defaultCurrency = 'EUR';
 const defaultTtl = 500;
@@ -123,7 +127,7 @@ function interpretResponse(serverResponse, bidRequest) {
 
 function report(type, data) {
   // noinspection JSCheckFunctionSignatures
-  return fetch(`${endpointUrl}/go/report/${type}`, {
+  return dep.fetch(`${endpointUrl}/go/report/${type}`, {
     body: JSON.stringify({
       ...data,
       domain: location.hostname,
