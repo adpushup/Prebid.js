@@ -128,7 +128,7 @@ export const buildExtuidQuery = ({ id5, imuId }) => {
   const queryString = params.join('\t');
   if (!queryString) return null;
   return queryString;
-}
+};
 
 /**
  * Get Floor Price from Prebid Price Floors Module
@@ -437,14 +437,13 @@ export const spec = {
           return;
         }
 
-    const bid = values[0];
-    const decodedAdm = decodeURIComponent(bid.adm)
-    // admの中にはhttps:\/\/cs.gssprt.jp\/yie\/ld\/mcs?ver=1&dspid=lamp&format=gif&vid=1\"のような文字列があるので、ここからクエリを抜き出す
-    const reg = new RegExp('https:\\\\/\\\\/cs.gssprt.jp\\\\/yie\\\\/ld\\\\/mcs\\?([^\\\\"]+)\\\\"', 'g');
-    const csQuery = Array.from(decodedAdm.matchAll(reg), (match) => match[1]);
-    if (!csQuery.length) {
-      return;
-    }
+        if (syncOptions.pixelEnabled && bid.adm) {
+          const decodedAdm = decodeURIComponent(bid.adm);
+          const reg = new RegExp('https:\\\\/\\\\/cs.gssprt.jp\\\\/yie\\\\/ld\\\\/mcs\\?([^\\\\"]+)\\\\"', 'g');
+          const csQuery = Array.from(decodedAdm.matchAll(reg), (match) => match[1]);
+          if (!csQuery.length) {
+            return;
+          }
 
     csQuery.forEach((query) => {
       syncs.push({

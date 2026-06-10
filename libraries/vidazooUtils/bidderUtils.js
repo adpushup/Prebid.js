@@ -37,7 +37,7 @@ export function getTopWindowQueryParams() {
 
 function isValidParamsHost(params) {
   // valid is params:{host: 'twist.win'}
-  return params && params.host && typeof params.host === 'string' && params.host.split('.').length === 2
+  return params && params.host && typeof params.host === 'string' && params.host.split('.').length === 2;
 }
 
 export function extractCID(params) {
@@ -153,15 +153,15 @@ export function getNextDealId(storage, key, expiry = DEAL_ID_EXPIRY) {
 }
 
 export function hashCode(s, prefix = '_') {
-	const l = s.length;
-	let h = 0;
-	let i = 0;
-	if (l > 0) {
-		while (i < l) {
-			h = ((h << 5) - h + s.charCodeAt(i++)) | 0;
-		}
-	}
-	return prefix + h;
+  const l = s.length;
+  let h = 0;
+  let i = 0;
+  if (l > 0) {
+    while (i < l) {
+      h = (h << 5) - h + s.charCodeAt(i++) | 0;
+    }
+  }
+  return prefix + h;
 }
 
 export function onBidWon(bid) {
@@ -239,7 +239,7 @@ export function createUserSyncGetter(options = {
       params += '&gpp=' + encodeURIComponent(gppString);
       params += '&gpp_sid=' + encodeURIComponent(applicableSections.join(','));
     }
-    const UsBaseHeader = responses?.[0]?.headers?.get('x-us-base-url')
+    const UsBaseHeader = responses?.[0]?.headers?.get('x-us-base-url');
 
     if (iframeEnabled) {
       if (options.iframeSyncUrl) {
@@ -278,7 +278,7 @@ export function createUserSyncGetter(options = {
       }
     }
     return syncs;
-  }
+  };
 }
 
 export function appendUserIdsToRequestPayload(payloadRef, userIds) {
@@ -304,7 +304,7 @@ function appendUserIdsAsEidsToRequestPayload(payloadRef, userIds) {
   userIds.forEach((userIdObj) => {
     key = `uid.${userIdObj.source}`;
     payloadRef[key] = userIdObj.uids[0].id;
-  })
+  });
 }
 
 export function getVidazooSessionId(storage) {
@@ -452,8 +452,8 @@ export function buildRequestData(bid, topWindowUrl, sizes, bidderRequest, bidder
     data['ext.' + key] = value;
   });
 
-  if (bidderRequest.ortb2) data.ortb2 = bidderRequest.ortb2
-  if (bid.ortb2Imp) data.ortb2Imp = bid.ortb2Imp
+  if (bidderRequest.ortb2) data.ortb2 = bidderRequest.ortb2;
+  if (bid.ortb2Imp) data.ortb2Imp = bid.ortb2Imp;
   if (params?.host) {
     data.params = {
       host: params.host
@@ -468,7 +468,7 @@ function getScreenResolution() {
   const width = dimensions?.screen?.width;
   const height = dimensions?.screen?.height;
   if (width != null && height != null) {
-    return `${width}x${height}`
+    return `${width}x${height}`;
   }
 }
 
@@ -478,7 +478,7 @@ export function createInterpretResponseFn(bidderCode, allowSingleRequest) {
 			return [];
 		}
 
-    const allowed = allowSingleRequest && MULTI_REQ_LIST.includes(bidderCode)
+    const allowed = allowSingleRequest && MULTI_REQ_LIST.includes(bidderCode);
     const singleRequestMode = allowed && config.getConfig(`${bidderCode}.singleRequest`);
     const reqBidId = request?.data?.bidId;
     const { results } = serverResponse.body;
@@ -524,17 +524,17 @@ export function createInterpretResponseFn(bidderCode, allowSingleRequest) {
           response.burl = burl;
         }
 
-				if (metaData) {
-					Object.assign(response, {
-						meta: metaData
-					});
-				} else {
-					Object.assign(response, {
-						meta: {
-							advertiserDomains: advertiserDomains || []
-						}
-					});
-				}
+        if (metaData) {
+          Object.assign(response, {
+            meta: metaData
+          });
+        } else {
+          Object.assign(response, {
+            meta: {
+              advertiserDomains: advertiserDomains || []
+            }
+          });
+        }
 
 				if (mediaType === BANNER) {
 					Object.assign(response, {
@@ -549,11 +549,11 @@ export function createInterpretResponseFn(bidderCode, allowSingleRequest) {
 				output.push(response);
 			});
 
-			return output;
-		} catch (e) {
-			return [];
-		}
-	};
+      return output;
+    } catch (e) {
+      return [];
+    }
+  };
 }
 
 export function createBuildRequestsFn(createRequestDomain, createUniqueRequestData, storage, bidderCode, bidderVersion, allowSingleRequest) {
@@ -584,9 +584,9 @@ export function createBuildRequestsFn(createRequestDomain, createUniqueRequestDa
     const subDomain = extractSubDomain(params);
     const data = bidRequests.map(bid => {
       const sizes = parseSizesInput(bid.sizes);
-      return buildRequestData(bid, topWindowUrl, sizes, bidderRequest, bidderTimeout, storage, bidderVersion, bidderCode, createUniqueRequestData)
+      return buildRequestData(bid, topWindowUrl, sizes, bidderRequest, bidderTimeout, storage, bidderVersion, bidderCode, createUniqueRequestData);
     });
-    let chSize = 10
+    let chSize = 10;
     if (config.getConfig(`${bidderCode}.chunkSize`) && typeof config.getConfig(`${bidderCode}.chunkSize`) === 'number') {
       chSize = config.getConfig(`${bidderCode}.chunkSize`);
     }
@@ -619,7 +619,7 @@ export function createBuildRequestsFn(createRequestDomain, createUniqueRequestDa
   return function buildRequests(validBidRequests, bidderRequest) {
     const topWindowUrl = bidderRequest.refererInfo.page || bidderRequest.refererInfo.topmostLocation;
     const bidderTimeout = bidderRequest.timeout || config.getConfig('bidderTimeout');
-    const allowed = allowSingleRequest && MULTI_REQ_LIST.includes(bidderCode)
+    const allowed = allowSingleRequest && MULTI_REQ_LIST.includes(bidderCode);
     const singleRequestMode = allowed && config.getConfig(`${bidderCode}.singleRequest`);
 
 		const requests = [];
@@ -657,5 +657,5 @@ export function createBuildRequestsFn(createRequestDomain, createUniqueRequestDa
       });
     }
     return requests;
-  }
+  };
 }

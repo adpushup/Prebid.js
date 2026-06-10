@@ -2,7 +2,7 @@ import { deepSetValue, generateUUID, logError } from '../src/utils.js';
 import { getStorageManager } from '../src/storageManager.js';
 import { AdapterRequest, BidderSpec, registerBidder } from '../src/adapters/bidderFactory.js';
 import { BANNER, NATIVE, VIDEO } from '../src/mediaTypes.js';
-import { ortbConverter } from '../libraries/ortbConverter/converter.js'
+import { ortbConverter } from '../libraries/ortbConverter/converter.js';
 
 import { interpretResponse, enrichImp, enrichRequest, getAmxId, getGzipSetting as libGetGzipSetting, getLocalStorageFunctionGenerator, getUserSyncs } from '../libraries/nexx360Utils/index.js';
 import { getBoundingClientRect } from '../libraries/boundingClientRect/boundingClientRect.js';
@@ -134,7 +134,7 @@ const buildRequests = (
   bidRequests: BidRequest<typeof BIDDER_CODE>[],
   bidderRequest: ClientBidderRequest<typeof BIDDER_CODE>,
 ): AdapterRequest => {
-  const data:ORTBRequest = converter.toORTB({ bidRequests, bidderRequest })
+  const data:ORTBRequest = converter.toORTB({ bidRequests, bidderRequest });
   const adapterRequest:AdapterRequest = {
     method: 'POST',
     url: REQUEST_URL,
@@ -142,9 +142,9 @@ const buildRequests = (
     options: {
       endpointCompression: getGzipSetting()
     },
-  }
+  };
   return adapterRequest;
-}
+};
 
 export const spec:BidderSpec<typeof BIDDER_CODE> = {
   code: BIDDER_CODE,
