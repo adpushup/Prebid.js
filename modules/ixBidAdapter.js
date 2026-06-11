@@ -696,7 +696,7 @@ function buildRequest(validBidRequests, bidderRequest, impressions, version) {
 
   // RTI ids will be included in the bid request if the function getIdentityInfo() is loaded
   // and if the data for the partner exist
-  if (window.headertag && typeof window.headertag.getIdentityInfo === 'function') {
+  if (canIncludeRTI(bidderRequest) && window.headertag && typeof window.headertag.getIdentityInfo === 'function') {
     addRTI(userEids, eidInfo);
   }
 
@@ -783,6 +783,15 @@ function buildRequest(validBidRequests, bidderRequest, impressions, version) {
   }
 
   return requests;
+}
+
+function canIncludeRTI(bidderRequest) {
+  const gdpr = bidderRequest?.gdprConsent;
+  if (gdpr?.gdprApplies === true && !gdpr.consentString) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
