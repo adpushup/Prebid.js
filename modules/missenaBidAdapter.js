@@ -29,8 +29,94 @@ const BIDDER_CODE = 'missena';
 const ENDPOINT_URL = 'https://bid.missena.io/';
 const EVENTS_DOMAIN = 'events.missena.io';
 const EVENTS_DOMAIN_DEV = 'events.staging.missena.xyz';
+const DEFAULT_PLACEMENT = 'sticky';
+const STICKY_AD_UNIT_PREFIX = 'STICKY_ADP';
+
+export const PLACEMENT_CONFIG = {
+  sticky: {
+    defaultFormats: ['sticky-banner'],
+    allowedFormats: ['sticky-banner'],
+    adUnitCodePrefix: STICKY_AD_UNIT_PREFIX,
+  },
+  // header: { defaultFormats: ['header-banner'], allowedFormats: ['header-banner'], adUnitCodePrefix: 'HEADER_ADP' },
+  // footer: { defaultFormats: ['footer-banner'], allowedFormats: ['footer-banner'], adUnitCodePrefix: 'FOOTER_ADP' },
+  // prestitial: { defaultFormats: ['prestitial-banner'], allowedFormats: ['prestitial-banner'] },
+  // postitial: { defaultFormats: ['postitial-banner'], allowedFormats: ['postitial-banner'] },
+  // infeed: { defaultFormats: ['infeed-banner'], allowedFormats: ['infeed-banner'] },
+  // 'infeed.s': { defaultFormats: ['infeed-s-banner'], allowedFormats: ['infeed-s-banner'] },
+};
 
 export const storage = getStorageManager({ bidderCode: BIDDER_CODE });
+
+function getPlacement(params = {}) {
+  return params.placement || DEFAULT_PLACEMENT;
+}
+
+function getPlacementConfig(placement) {
+  return PLACEMENT_CONFIG[placement];
+}
+
+function hasValidFormats(formats, placementConfig) {
+  if (formats == null) {
+    return true;
+  }
+
+  if (!Array.isArray(formats)) {
+    return false;
+  }
+
+  const allowedFormats =
+    placementConfig.allowedFormats ?? placementConfig.defaultFormats;
+
+  return formats.some((format) => allowedFormats.includes(format));
+}
+
+export function isStickyAdUnitCode(adUnitCode) {
+  return typeof adUnitCode === 'string' && adUnitCode.startsWith(STICKY_AD_UNIT_PREFIX);
+}
+
+function matchesPlacementAdUnit(placement, adUnitCode) {
+  const prefix = getPlacementConfig(placement)?.adUnitCodePrefix;
+
+  if (!prefix) {
+    return true;
+  }
+
+  return typeof adUnitCode === 'string' && adUnitCode.startsWith(prefix);
+}
+
+function isSupportedPlacementBidRequest(bid) {
+  if (!isStickyAdUnitCode(bid?.adUnitCode)) {
+    return false;
+  }
+
+  const placement = getPlacement(bid?.params);
+  const placementConfig = getPlacementConfig(placement);
+
+  if (!placementConfig) {
+    return false;
+  }
+
+  return (
+    matchesPlacementAdUnit(placement, bid?.adUnitCode) &&
+    hasValidFormats(bid?.params?.formats, placementConfig)
+  );
+}
+
+function getNormalizedBidParams(params = {}) {
+  const placement = getPlacement(params);
+  const placementConfig = getPlacementConfig(placement);
+
+  if (!placementConfig) {
+    return params;
+  }
+
+  return {
+    ...params,
+    placement,
+    formats: params.formats ?? placementConfig.defaultFormats,
+  };
+}
 window.msna_ik = window.msna_ik || generateUUID();
 
 /* Get Floor price information */
@@ -59,7 +145,7 @@ function toPayload(bidRequest, bidderRequest) {
   };
 
   const baseUrl = bidRequest.params.baseUrl || ENDPOINT_URL;
-  payload.params = bidRequest.params;
+  payload.params = getNormalizedBidParams(bidRequest.params);
 
   payload.userEids = bidRequest.userIdAsEids || [];
   payload.version = '$prebid.version$';
@@ -95,7 +181,11 @@ export const spec = {
    * @return boolean True if this is a valid bid, and false otherwise.
    */
   isBidRequestValid: function (bid) {
-    return typeof bid == 'object' && !!bid.params.apiKey;
+    return (
+      typeof bid === 'object' &&
+      !!bid.params?.apiKey &&
+      isSupportedPlacementBidRequest(bid)
+    );
   },
 
   /**
@@ -118,9 +208,17 @@ export const spec = {
       return [];
     }
 
-    this.msnaApiKey = validBidRequests[0]?.params.apiKey;
+    const stickyBidRequests = validBidRequests.filter((bidRequest) =>
+      isStickyAdUnitCode(bidRequest.adUnitCode),
+    );
 
-    return validBidRequests.map((bidRequest) =>
+    if (!stickyBidRequests.length) {
+      return [];
+    }
+
+    this.msnaApiKey = stickyBidRequests[0]?.params.apiKey;
+
+    return stickyBidRequests.map((bidRequest) =>
       toPayload(bidRequest, bidderRequest),
     );
   },
