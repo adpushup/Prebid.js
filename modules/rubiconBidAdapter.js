@@ -298,7 +298,7 @@ export const spec = {
     let filteredRequests;
 
     filteredRequests = bidRequests.filter(req => {
-      const mediaTypes = bidType(req) || [];
+      const mediaTypes = bidType(req);
       const { length } = mediaTypes;
       const { bidonmultiformat, video } = req.params || {};
 
@@ -327,7 +327,7 @@ export const spec = {
     }
 
     const bannerBidRequests = bidRequests.filter((req) => {
-      const mediaTypes = bidType(req) || [];
+      const mediaTypes = bidType(req);
       const { bidonmultiformat, video } = req.params || {};
       return (
         // Send to fastlane if: it must include BANNER and...
