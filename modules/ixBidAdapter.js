@@ -194,7 +194,7 @@ function setDisplayManager(imp, bid) {
       imp.displaymanager = 'pbjs_wrapper';
     } else if (renderer && typeof (renderer) === 'object') {
       if (renderer.url !== undefined) {
-        let domain = '';
+        let domain;
         try {
           domain = new URL(renderer.url).hostname;
         } catch {
@@ -1120,7 +1120,7 @@ function getIxFirstPartyDataPageUrl (bidderRequest) {
   const bidderCode = (bidderRequest && bidderRequest.bidderCode) || 'ix';
   const otherIxConfig = config.getConfig(bidderCode);
 
-  let pageUrl = '';
+  let pageUrl;
   if (deepAccess(bidderRequest, 'ortb2.site.page')) {
     pageUrl = bidderRequest.ortb2.site.page;
   } else {
@@ -1768,7 +1768,7 @@ export const spec = {
    */
   interpretResponse: function (serverResponse, bidderRequest) {
     const bids = [];
-    let bid = null;
+    let bid;
 
     FEATURE_TOGGLES.setFeatureToggles(serverResponse);
 
