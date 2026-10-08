@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { spec, storage } from 'modules/missenaBidAdapter.js';
+import { spec, storage, PLACEMENT_CONFIG, isStickyAdUnitCode } from 'modules/missenaBidAdapter.js';
 import { BANNER } from '../../../src/mediaTypes.js';
 import { config } from 'src/config.js';
 import * as autoplay from 'libraries/autoplayDetection/autoplay.js';
@@ -10,6 +10,9 @@ const REFERRER2 = 'https://referer2';
 const COOKIE_DEPRECATION_LABEL = 'test';
 const CONSENT_STRING = 'AAAAAAAAA==';
 const API_KEY = 'PA-XXXXXX';
+const STICKY_AD_UNIT_CODE =
+  'STICKY_ADP_38170_970X90_76d1a660-e1b2-4281-9d26-3ad376e1e9e4';
+const NON_STICKY_AD_UNIT_CODE = 'MANUAL_ADP_38170_300X250_abc123';
 
 describe('Missena Adapter', function () {
   $$PREBID_GLOBAL$$.bidderSettings = {
@@ -26,6 +29,7 @@ describe('Missena Adapter', function () {
   const bid = {
     bidder: 'missena',
     bidId: bidId,
+    adUnitCode: STICKY_AD_UNIT_CODE,
     mediaTypes: { banner: { sizes: [[1, 1]] } },
     ortb2: {
       device: {
@@ -57,6 +61,7 @@ describe('Missena Adapter', function () {
   const bidWithoutFloor = {
     bidder: 'missena',
     bidId: bidId,
+    adUnitCode: STICKY_AD_UNIT_CODE,
     mediaTypes: { banner: { sizes: [1, 1] } },
     params: {
       apiKey: API_KEY,
@@ -111,6 +116,74 @@ describe('Missena Adapter', function () {
         spec.isBidRequestValid(Object.assign(bid, { params: { apiKey: '' } })),
       ).to.equal(false);
     });
+
+    it('should return true if placement is omitted and defaults to sticky', function () {
+      expect(
+        spec.isBidRequestValid({
+          ...bid,
+          params: {
+            apiKey: API_KEY,
+            formats: ['sticky-banner'],
+          },
+        }),
+      ).to.equal(true);
+    });
+
+    it('should return false if adUnitCode does not match sticky prefix', function () {
+      expect(PLACEMENT_CONFIG.sticky.adUnitCodePrefix).to.equal('STICKY_ADP');
+      expect(isStickyAdUnitCode(STICKY_AD_UNIT_CODE)).to.equal(true);
+      expect(isStickyAdUnitCode(NON_STICKY_AD_UNIT_CODE)).to.equal(false);
+      expect(isStickyAdUnitCode('TOG_ADP_41722_970X250_test')).to.equal(false);
+      expect(
+        spec.isBidRequestValid({
+          ...bid,
+          adUnitCode: NON_STICKY_AD_UNIT_CODE,
+        }),
+      ).to.equal(false);
+      expect(
+        spec.isBidRequestValid({
+          ...bid,
+          adUnitCode: 'TOG_ADP_41722_970X250_test',
+        }),
+      ).to.equal(false);
+    });
+
+    it('should return false if adUnitCode is missing for sticky placement', function () {
+      expect(
+        spec.isBidRequestValid({
+          ...bid,
+          adUnitCode: undefined,
+        }),
+      ).to.equal(false);
+    });
+
+    it('should return false for placements not enabled in PLACEMENT_CONFIG', function () {
+      expect(PLACEMENT_CONFIG.header).to.equal(undefined);
+      expect(
+        spec.isBidRequestValid({
+          ...bid,
+          adUnitCode: 'HEADER_ADP_38170_970X90_test',
+          params: {
+            apiKey: API_KEY,
+            placement: 'header',
+            formats: ['header-banner'],
+          },
+        }),
+      ).to.equal(false);
+    });
+
+    it('should return false if formats are not allowed for the placement', function () {
+      expect(
+        spec.isBidRequestValid({
+          ...bid,
+          params: {
+            apiKey: API_KEY,
+            placement: 'sticky',
+            formats: ['banner'],
+          },
+        }),
+      ).to.equal(false);
+    });
   });
 
   describe('buildRequests', function () {
@@ -145,6 +218,20 @@ describe('Missena Adapter', function () {
       expect(requests.length).to.equal(2);
     });
 
+    it('should not build requests for non-sticky ad units', function () {
+      const nonStickyRequests = spec.buildRequests(
+        [
+          {
+            ...bid,
+            adUnitCode: 'TOG_ADP_41722_970X250_test',
+          },
+        ],
+        bidderRequest,
+      );
+
+      expect(nonStickyRequests.length).to.equal(0);
+    });
+
     it('should have a post method', function () {
       expect(request.method).to.equal('POST');
     });
@@ -159,6 +246,23 @@ describe('Missena Adapter', function () {
 
     it('should send formats', function () {
       expect(payload.params.formats).to.eql(['sticky-banner']);
+    });
+
+    it('should default placement and formats from PLACEMENT_CONFIG', function () {
+      const requestsWithoutPlacement = spec.buildRequests(
+        [
+          {
+            ...bidWithoutFloor,
+            adUnitCode: STICKY_AD_UNIT_CODE,
+            params: { apiKey: API_KEY },
+          },
+        ],
+        bidderRequest,
+      );
+      const payloadWithoutPlacement = JSON.parse(requestsWithoutPlacement[0].data);
+
+      expect(payloadWithoutPlacement.params.placement).to.equal('sticky');
+      expect(payloadWithoutPlacement.params.formats).to.eql(['sticky-banner']);
     });
 
     it('should send viewport', function () {
