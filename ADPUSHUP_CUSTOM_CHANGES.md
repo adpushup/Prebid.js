@@ -15,7 +15,7 @@ The fork contains 29 changed files. The changes are grouped below by behavior ra
 The custom fork adds five bidder integrations and one bidder alias, modernizes several existing adapters, and adds AdPushup-specific runtime behavior:
 
 - Adds Microsoft (`msft`), Floxis (`floxis`), Omnidex (`omnidex`), LoopMe (`loopme`), and Pinelake (`pinelake`) adapters.
-- Adds `iqm` as an alias for the Pinelake adapter and `gourmetads` as an alias for the Microsoft adapter.
+- Adds `iqm` as an alias for the Pinelake adapter, `gourmetads` as an alias for the Microsoft adapter, and `intlscoop` as an alias for the Adkernel adapter.
 - Adds a shared request/response utility expansion used by Vidazoo-family adapters, including ProgrammaticX and Omnidex.
 - Reworks Bidmatic request mapping, response parsing, user sync handling, and placement telemetry.
 - Adds media-type and request-routing fixes for ePlanning, Index Exchange, Lucead, OMS, Relevate Health, Rubicon, Sharethrough, and SSP Geniee.
@@ -283,6 +283,7 @@ Before writing a direct creative into the ad document, the renderer now checks t
 | `modules/msftBidAdapter.js`                  | New Microsoft adapter                               |
 | `modules/msftBidAdapter.md`                  | Microsoft adapter documentation                     |
 | `modules/nexx360BidAdapter.js`               | Adds `revnew` alias                                 |
+| `modules/adkernelBidAdapter.js`              | Adds `intlscoop` alias                              |
 | `modules/omnidexBidAdapter.js`               | New Omnidex adapter                                 |
 | `modules/omnidexBidAdapter.md`               | Omnidex adapter documentation                       |
 | `modules/omsBidAdapter.js`                   | Banner impression metadata fix                      |
