@@ -421,9 +421,7 @@ export const spec = {
   },
   getUserSyncs: function (syncOptions, serverResponses) {
     const syncs = [];
-    if (!syncOptions.iframeEnabled && !syncOptions.pixelEnabled) {
-      return syncs;
-    }
+    if (!syncOptions.iframeEnabled && !syncOptions.pixelEnabled) return syncs;
 
     serverResponses.forEach((serverResponse) => {
       if (!serverResponse || !serverResponse.body) return;
@@ -445,13 +443,16 @@ export const spec = {
             return;
           }
 
-    csQuery.forEach((query) => {
-      syncs.push({
-        type: syncOptions.pixelEnabled ? 'image' : 'iframe',
-        url: USER_SYNC_ENDPOINT + '?' + query
+          csQuery.forEach((query) => {
+            syncs.push({
+              type: 'image',
+              url: USER_SYNC_ENDPOINT_IMAGE + '?' + query
+            });
+          });
+        }
       });
     });
-  });
+
     return syncs;
   },
   onTimeout: function (timeoutData) {},
