@@ -10,17 +10,6 @@ import {
   parseSizesInput
 } from '../src/utils.js';
 import { config } from '../src/config.js';
-import {
-  _map,
-  cleanObj,
-  deepAccess,
-  flatten,
-  isArray,
-  isNumber,
-  logWarn,
-  parseSizesInput
-} from '../src/utils.js';
-import { config } from '../src/config.js';
 import { BANNER, VIDEO } from '../src/mediaTypes.js';
 import { chunk } from '../libraries/chunk/chunk.js';
 import { getPlacementPositionUtils } from "../libraries/placementPositionInfo/placementPositionInfo.js";
