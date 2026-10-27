@@ -1,6 +1,5 @@
 import { registerBidder } from '../src/adapters/bidderFactory.js';
 import {
-  _map,
   cleanObj,
   deepAccess,
   flatten,
@@ -12,7 +11,7 @@ import {
 import { config } from '../src/config.js';
 import { BANNER, VIDEO } from '../src/mediaTypes.js';
 import { chunk } from '../libraries/chunk/chunk.js';
-import { getPlacementPositionUtils } from "../libraries/placementPositionInfo/placementPositionInfo.js";
+import { getPlacementPositionUtils } from '../libraries/placementPositionInfo/placementPositionInfo.js';
 
 /**
  * @typedef {import('../src/adapters/bidderFactory.js').Bid} Bid
@@ -51,7 +50,7 @@ export const spec = {
     const { tag, bids } = bidToTag(bidRequests, adapterRequest);
     const bidChunks = chunk(bids, chunkSize);
 
-    return _map(bidChunks, (bids) => {
+    return bidChunks.map((bids) => {
       return {
         data: Object.assign({}, tag, { BidRequests: bids }),
         adapterRequest,
@@ -73,14 +72,13 @@ export const spec = {
     let bids = [];
 
     if (isArray(serverResponse)) {
-      serverResponse.forEach(serverBidResponse => {
+      serverResponse.forEach((serverBidResponse) => {
         bids = flatten(bids, parseResponseBody(serverBidResponse, adapterRequest));
       });
       return bids;
     }
     return parseResponseBody(serverResponse, adapterRequest);
-  },
-
+  }
 };
 
 export function getResponseSyncs(syncOptions, bid) {
@@ -90,9 +88,11 @@ export function getResponseSyncs(syncOptions, bid) {
   return uris.reduce((acc, uri, i) => {
     const type = types[i] || 'image';
 
-    if ((!syncOptions.pixelEnabled && type === 'image') ||
+    if (
+      (!syncOptions.pixelEnabled && type === 'image') ||
       (!syncOptions.iframeEnabled && type === 'iframe') ||
-      SYNCS_DONE.has(uri)) {
+      SYNCS_DONE.has(uri)
+    ) {
       return acc;
     }
 
@@ -112,7 +112,7 @@ export function getUserSyncsFn(syncOptions, serverResponses) {
   serverResponses.forEach((response) => {
     if (!response.body) return;
     if (isArray(response.body)) {
-      response.body.forEach(b => {
+      response.body.forEach((b) => {
         newSyncs = newSyncs.concat(getResponseSyncs(syncOptions, b));
       });
     } else {
@@ -126,13 +126,13 @@ export function getUserSyncsFn(syncOptions, serverResponses) {
 export function parseResponseBody(serverResponse, adapterRequest) {
   const responseBids = [];
 
-  if (!isArray(deepAccess((serverResponse), 'bids'))) {
+  if (!isArray(deepAccess(serverResponse, 'bids'))) {
     return responseBids;
   }
 
-  serverResponse.bids.forEach(serverBid => {
+  serverResponse.bids.forEach((serverBid) => {
     // avoid errors with id mismatch
-    const bidRequestMatch = ((adapterRequest.bids) || []).find((bidRequest) => {
+    const bidRequestMatch = (adapterRequest.bids || []).find((bidRequest) => {
       return bidRequest.bidId === serverBid.requestId;
     });
 
@@ -154,8 +154,12 @@ export function remapBidRequest(bidRequests, adapterRequest) {
   bidRequestBody.USP = deepAccess(adapterRequest, 'uspConsent');
   bidRequestBody.Coppa = deepAccess(adapterRequest, 'ortb2.regs.coppa') ? 1 : 0;
   bidRequestBody.AgeVerification = deepAccess(adapterRequest, 'ortb2.regs.ext.age_verification');
-  bidRequestBody.GPP = adapterRequest.gppConsent ? adapterRequest.gppConsent.gppString : adapterRequest.ortb2?.regs?.gpp;
-  bidRequestBody.GPPSid = adapterRequest.gppConsent ? adapterRequest.gppConsent.applicableSections?.toString() : adapterRequest.ortb2?.regs?.gpp_sid;
+  bidRequestBody.GPP = adapterRequest.gppConsent
+    ? adapterRequest.gppConsent.gppString
+    : adapterRequest.ortb2?.regs?.gpp;
+  bidRequestBody.GPPSid = adapterRequest.gppConsent
+    ? adapterRequest.gppConsent.applicableSections?.toString()
+    : adapterRequest.ortb2?.regs?.gpp_sid;
   bidRequestBody.Schain = deepAccess(bidRequests[0], 'schain');
   bidRequestBody.UserEids = deepAccess(bidRequests[0], 'userIdAsEids');
   bidRequestBody.UserIds = deepAccess(bidRequests[0], 'userId');
@@ -187,7 +191,7 @@ const getBidFloor = (bid) => {
     const bidFloor = bid.getFloor({
       currency: 'USD',
       mediaType: '*',
-      size: '*',
+      size: '*'
     });
 
     return bidFloor?.floor;
@@ -202,15 +206,18 @@ const getBidFloor = (bid) => {
  */
 export function prepareBidRequests(bidReq) {
   const mediaType = deepAccess(bidReq, 'mediaTypes.video') ? VIDEO : 'display';
-  const sizes = mediaType === VIDEO ? deepAccess(bidReq, 'mediaTypes.video.playerSize') : deepAccess(bidReq, 'mediaTypes.banner.sizes');
+  const sizes =
+    mediaType === VIDEO
+      ? deepAccess(bidReq, 'mediaTypes.video.playerSize')
+      : deepAccess(bidReq, 'mediaTypes.banner.sizes');
   return cleanObj({
-    'CallbackId': bidReq.bidId,
-    'Aid': bidReq.params.source,
-    'AdType': mediaType,
-    'PlacementId': bidReq.adUnitCode,
-    'Sizes': parseSizesInput(sizes).join(','),
-    'BidFloor': getBidFloor(bidReq),
-    'GPID': deepAccess(bidReq, 'ortb2Imp.ext.gpid'),
+    CallbackId: bidReq.bidId,
+    Aid: bidReq.params.source,
+    AdType: mediaType,
+    PlacementId: bidReq.adUnitCode,
+    Sizes: parseSizesInput(sizes).join(','),
+    BidFloor: getBidFloor(bidReq),
+    GPID: deepAccess(bidReq, 'ortb2Imp.ext.gpid'),
     ...getPlacementInfo(bidReq)
   });
 }

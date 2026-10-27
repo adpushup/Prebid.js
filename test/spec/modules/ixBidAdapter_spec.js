@@ -2416,7 +2416,7 @@ describe('IndexexchangeAdapter', function () {
 
       it('missing sizes impressions should contain floors from priceFloors module ', function () {
         const bid = utils.deepClone(ONE_BANNER[0]);
-        bid.mediaTypes.banner.sizes.push([500, 400]);
+        bid.mediaTypes.banner.sizes.push([300, 600]);
 
         const expectedFloor = 3.25;
         bid.getFloor = () => ({ floor: expectedFloor, currency });
@@ -2429,8 +2429,8 @@ describe('IndexexchangeAdapter', function () {
         expect(bid.getFloor.getCall(0).args[0].size[1]).to.equal(250);
 
         expect(bid.getFloor.getCall(1).args[0].mediaType).to.equal('banner');
-        expect(bid.getFloor.getCall(1).args[0].size[0]).to.equal(500);
-        expect(bid.getFloor.getCall(1).args[0].size[1]).to.equal(400);
+        expect(bid.getFloor.getCall(1).args[0].size[0]).to.equal(300);
+        expect(bid.getFloor.getCall(1).args[0].size[1]).to.equal(600);
 
         const impression = extractPayload(requestBidFloor).imp[0];
         expect(impression.bidfloor).to.equal(expectedFloor);
@@ -2934,14 +2934,15 @@ describe('IndexexchangeAdapter', function () {
       const request = spec.buildRequests([bid, bid2], DEFAULT_OPTION)[0];
       const impression = extractPayload(request).imp[0];
       const sidValue = bid.params.id;
+      const expectedSizes = [[300, 250], [300, 600], [970, 90]];
 
       expect(impression.id).to.equal(bid.bidId);
-      expect(impression.banner.format).to.be.length(bid.mediaTypes.banner.sizes.length);
+      expect(impression.banner.format).to.be.length(expectedSizes.length);
       expect(impression.banner.topframe).to.be.oneOf([0, 1]);
       expect(impression.ext.sid).to.equal(sidValue);
 
       impression.banner.format.forEach(({ w, h, ext }, index) => {
-        const size = bid.mediaTypes.banner.sizes[index];
+        const size = expectedSizes[index];
 
         expect(w).to.equal(size[0]);
         expect(h).to.equal(size[1]);
@@ -3434,11 +3435,12 @@ describe('IndexexchangeAdapter', function () {
 
         // banner imp assertions
         const bImp = imps[0];
+        const expectedBannerSizes = [[300, 250], [300, 600]];
         expect(bImp.id).to.equal(bids[0].bidId);
-        expect(bImp.banner.format).to.have.length(bids[0].mediaTypes.banner.sizes.length);
+        expect(bImp.banner.format).to.have.length(expectedBannerSizes.length);
         expect(bImp.banner.topframe).to.be.oneOf([0, 1]);
         bImp.banner.format.forEach(({ w, h, ext }, i) => {
-          const [sw, sh] = bids[0].mediaTypes.banner.sizes[i];
+          const [sw, sh] = expectedBannerSizes[i];
           expect(w).to.equal(sw);
           expect(h).to.equal(sh);
           expect(ext.siteID).to.be.undefined;

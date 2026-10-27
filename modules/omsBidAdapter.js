@@ -8,7 +8,7 @@ import {
   getBidIdParameter,
   getUniqueIdentifierStr,
   formatQS,
-  deepAccess,
+  deepAccess
 } from '../src/utils.js';
 import { registerBidder } from '../src/adapters/bidderFactory.js';
 import { BANNER, VIDEO } from '../src/mediaTypes.js';
@@ -34,44 +34,55 @@ export const spec = {
   interpretResponse,
   onBidderError,
   onBidWon,
-  getUserSyncs,
+  getUserSyncs
 };
 
 function buildRequests(bidReqs, bidderRequest) {
   try {
-    const impressions = bidReqs.map(bid => {
+    const impressions = bidReqs.map((bid) => {
       let bidSizes = bid?.mediaTypes?.banner?.sizes || bid.sizes || [];
-      bidSizes = ((isArray(bidSizes) && isArray(bidSizes[0])) ? bidSizes : [bidSizes]);
-      bidSizes = bidSizes.filter(size => isArray(size));
-      const processedSizes = bidSizes.map(size => ({ w: parseInt(size[0], 10), h: parseInt(size[1], 10) }));
+      bidSizes = isArray(bidSizes) && isArray(bidSizes[0]) ? bidSizes : [bidSizes];
+      bidSizes = bidSizes.filter((size) => isArray(size));
+      const processedSizes = bidSizes.map((size) => ({
+        w: parseInt(size[0], 10),
+        h: parseInt(size[1], 10)
+      }));
 
       const element = getAdUnitElement(bid);
       const minSize = getMinSize(processedSizes);
-      const viewabilityAmount = _isViewabilityMeasurable(element) ? _getViewability(element, getWindowTop(), minSize) : 'na';
-      const viewabilityAmountRounded = isNaN(viewabilityAmount) ? viewabilityAmount : Math.round(viewabilityAmount);
+      const viewabilityAmount = _isViewabilityMeasurable(element)
+        ? _getViewability(element, getWindowTop(), minSize)
+        : 'na';
+      const viewabilityAmountRounded = isNaN(viewabilityAmount)
+        ? viewabilityAmount
+        : Math.round(viewabilityAmount);
       const gpidData = _extractGpidData(bid);
 
       const imp = {
         id: bid.bidId,
-        displaymanagerver: '$prebid.version$',
+        banner: {
+          format: processedSizes,
+          ext: {
+            viewability: viewabilityAmountRounded
+          }
+        },
         ext: {
           ...gpidData
         },
         tagid: String(bid.adUnitCode)
       };
 
-      if (bid?.mediaTypes?.banner) {
-        imp.banner = {
-          format: processedSizes,
-          ext: {
-            viewability: viewabilityAmountRounded,
-          }
-        };
-      }
+      // Adpushup-only behavior from our 9.41 fork. Official 11.24 sends banner or video, so the upgrade has to copy this or OMS stops sending both.
+      imp.banner = {
+        format: processedSizes,
+        ext: {
+          viewability: viewabilityAmountRounded
+        }
+      };
 
       if (bid?.mediaTypes?.video) {
         imp.video = {
-          ...bid.mediaTypes.video,
+          ...bid.mediaTypes.video
         };
       }
 
@@ -147,7 +158,7 @@ function buildRequests(bidReqs, bidderRequest) {
     return {
       method: 'POST',
       url: URL,
-      data: JSON.stringify(payload),
+      data: JSON.stringify(payload)
     };
   } catch (e) {
     logError(e, { bidReqs, bidderRequest });
@@ -169,11 +180,13 @@ function interpretResponse(serverResponse) {
     return response;
   }
 
-  const { body: { id, seatbid } } = serverResponse;
+  const {
+    body: { id, seatbid }
+  } = serverResponse;
 
   try {
     if (id && seatbid && seatbid.length > 0 && seatbid[0].bid && seatbid[0].bid.length > 0) {
-      response = seatbid[0].bid.map(bid => {
+      response = seatbid[0].bid.map((bid) => {
         const bidResponse = {
           requestId: bid.impid,
           cpm: parseFloat(bid.price),
@@ -215,7 +228,7 @@ function getUserSyncs(syncOptions, serverResponses, gdprConsent, uspConsent, gpp
 
     syncs.push({
       type: 'iframe',
-      url: USER_SYNC_URL_IFRAME + params,
+      url: USER_SYNC_URL_IFRAME + params
     });
   }
 
@@ -246,11 +259,15 @@ function _trackEvent(endpoint, data) {
 }
 
 function _getDeviceType(ua, sua) {
-  if (sua?.mobile || (/(ios|ipod|ipad|iphone|android)/i).test(ua)) {
+  if (sua?.mobile || /(ios|ipod|ipad|iphone|android)/i.test(ua)) {
     return 1;
   }
 
-  if ((/(smart[-]?tv|hbbtv|appletv|googletv|hdmi|netcast\.tv|viera|nettv|roku|\bdtv\b|sonydtv|inettvbrowser|\btv\b)/i).test(ua)) {
+  if (
+    /(smart[-]?tv|hbbtv|appletv|googletv|hdmi|netcast\.tv|viera|nettv|roku|\bdtv\b|sonydtv|inettvbrowser|\btv\b)/i.test(
+      ua
+    )
+  ) {
     return 3;
   }
 
@@ -262,9 +279,7 @@ function _getGpp(bidderRequest) {
     return bidderRequest.gppConsent;
   }
 
-  return (
-    bidderRequest?.ortb2?.regs?.gpp ?? { gppString: '', applicableSections: '' }
-  );
+  return bidderRequest?.ortb2?.regs?.gpp ?? { gppString: '', applicableSections: '' };
 }
 
 function _getAdMarkup(bid) {
@@ -280,7 +295,9 @@ function _isViewabilityMeasurable(element) {
 }
 
 function _getViewability(element, topWin, { w, h } = {}) {
-  return getWindowTop().document.visibilityState === 'visible' ? percentInView(element, { w, h }) : 0;
+  return getWindowTop().document.visibilityState === 'visible'
+    ? percentInView(element, { w, h })
+    : 0;
 }
 
 function _extractGpidData(bid) {
@@ -288,7 +305,7 @@ function _extractGpidData(bid) {
     gpid: bid?.ortb2Imp?.ext?.gpid,
     adserverName: bid?.ortb2Imp?.ext?.data?.adserver?.name,
     adslot: bid?.ortb2Imp?.ext?.data?.adserver?.adslot,
-    pbadslot: bid?.ortb2Imp?.ext?.data?.pbadslot,
+    pbadslot: bid?.ortb2Imp?.ext?.data?.pbadslot
   };
 }
 

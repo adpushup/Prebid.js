@@ -134,7 +134,27 @@ const MEDIA_TYPES = {
   Audio: 3,
   Native: 4
 };
+const AP_VALID_SIZES = [
+  [300, 50],
+  [120, 600],
+  [250, 250],
+  [300, 250],
+  [300, 600],
+  [728, 90],
+  [160, 600],
+  [728, 400],
+  [480, 320],
+  [320, 50],
+  [580, 400],
+  [970, 90],
+  [970, 250],
+  [320, 480]
+];
 
+// Adpushup-only behavior from the 9.41 fork. Official 11.24 does not include it, so the upgrade has to copy it or IX sends sizes the network does not bid.
+function apIsValidSize(width, height) {
+  return AP_VALID_SIZES.some(([validWidth, validHeight]) => validWidth === width && validHeight === height);
+}
 /**
  * Transform valid bid request config object to banner impression object that will be sent to ad server.
  *
@@ -1463,7 +1483,11 @@ function updateMissingSizes(validBidRequest, missingBannerSizes, imp) {
   } else {
     // New Ad Unit
     if (deepAccess(validBidRequest, 'mediaTypes.banner.sizes')) {
-      const sizeList = deepClone(validBidRequest.mediaTypes.banner.sizes);
+      const sizes = validBidRequest.mediaTypes.banner.sizes;
+      let sizeList = deepClone(sizes.filter((size) => apIsValidSize(...size)));
+      if (!sizeList.length) {
+        sizeList = deepClone(sizes);
+      }
       removeFromSizes(sizeList, validBidRequest.params.size);
       const newAdUnitEntry = {
         'missingSizes': sizeList,
