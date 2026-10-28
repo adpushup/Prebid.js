@@ -9,11 +9,11 @@ import { getDNT } from '../libraries/dnt/index.js';
 
 const VERSION = '4.3.0';
 const BIDDER_CODE = 'sharethrough';
+const IDENTIFIER_PREFIX = 'Sharethrough:';
 const SUPPLY_ID = 'WYu2BXv1';
 
 const EQT_ENDPOINT = 'https://ssb.smartadserver.com/api/bid?callerId=233';
 const STR_ENDPOINT = `https://btlr.sharethrough.com/universal/v1?supply_id=${SUPPLY_ID}`;
-const IDENTIFIER_PREFIX = 'Sharethrough:';
 
 let impIdMap = {};
 let eqtvNetworkId = 0;
@@ -158,9 +158,23 @@ export const sharethroughAdapterSpec = {
 
         const nativeRequest = deepAccess(bidReq, 'mediaTypes.native');
         const videoRequest = deepAccess(bidReq, 'mediaTypes.video');
+        // Adpushup-only: if banner is present, do not also build a video/outstream impression.
+        const bannerRequest = deepAccess(bidReq, 'mediaTypes.banner');
 
-        if (videoRequest) {
-          // default playerSize, only change this if we know width and height are properly defined in the request
+        if (bidderRequest.paapi?.enabled && bidReq.mediaTypes.banner) {
+          mergeDeep(impression, { ext: { ae: 1 } }); // ae = auction environment; if this is 1, ad server knows we have a fledge auction
+        }
+
+        if (bannerRequest) {
+          impression.banner = {
+            pos: deepAccess(bidReq, 'mediaTypes.banner.pos', 0),
+            topframe: inIframe() ? 0 : 1,
+            format: bidReq.sizes.map((size) => ({ w: +size[0], h: +size[1] })),
+          };
+          const battr =
+            deepAccess(bidReq, 'mediaTypes.banner.battr', null) || deepAccess(bidReq, 'ortb2Imp.banner.battr');
+          if (battr) impression.banner.battr = battr;
+        } else if (videoRequest) {
           let [w, h] = [640, 360];
           if (
             videoRequest.playerSize &&
@@ -171,12 +185,6 @@ export const sharethroughAdapterSpec = {
             [w, h] = videoRequest.playerSize[0];
           }
 
-          /**
-           * Applies a specified property to an impression object if it is present in the video request
-           * @param {string} prop A property to apply to the impression object
-           * @param {object} vidReq A video request object from which to extract the property
-           * @param {object} imp A video impression object to which to apply the property
-           */
           const applyVideoProperty = (prop, vidReq, imp) => {
             const propIsTypeArray = ['api', 'battr', 'mimes', 'playbackmethod', 'protocols'].includes(prop);
             if (propIsTypeArray) {
@@ -235,15 +243,6 @@ export const sharethroughAdapterSpec = {
           impression.native = {
             ...nativeImp.imp[0].native,
           };
-        } else {
-          impression.banner = {
-            pos: deepAccess(bidReq, 'mediaTypes.banner.pos', 0),
-            topframe: inIframe() ? 0 : 1,
-            format: bidReq.sizes.map((size) => ({ w: +size[0], h: +size[1] })),
-          };
-          const battr =
-            deepAccess(bidReq, 'mediaTypes.banner.battr', null) || deepAccess(bidReq, 'ortb2Imp.banner.battr');
-          if (battr) impression.banner.battr = battr;
         }
 
         const tagid = isEqtvTest ? bidReq.adUnitCode : String(bidReq.params.pkey);

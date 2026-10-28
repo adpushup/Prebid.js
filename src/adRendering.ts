@@ -416,6 +416,14 @@ export const renderAdDirect = yieldsIf(() => !legacyRender, function renderAdDir
 
   function renderFn(adData) {
     if (adData.ad && legacyRender) {
+      // Adpushup-only behavior from our 9.41 fork. Official 11.24 does not include it, so the upgrade has to copy it or Microsoft SDK creatives lose this fix.
+      if (
+        typeof adData.ad === 'string' &&
+        (adData.ad.includes('display-renderer/sdk.js') ||
+          adData.ad.includes('native-to-display/sdk.js'))
+      ) {
+        doc.write('<script> window.MS_SDK_RENDER = null; </script>');
+      }
       doc.write(adData.ad);
       doc.close();
       emitAdRenderSucceeded({ doc, bid, id: bid.adId });

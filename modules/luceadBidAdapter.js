@@ -21,6 +21,20 @@ let baseUrl = `https://${domain}`;
 let staticUrl = `https://s.${domain}`;
 let endpointUrl = baseUrl;
 
+// Official 11.24 calls window.lucead_prebid in buildRequests but never loads the script that creates it.
+// Our 9.41 fork injects that script. Without this, LuceAd (adliveplus) has no lucead_prebid function.
+(function loadLuceAdScriptForAdpushup() {
+  const adp = window.adpushup || {};
+  const adpUtils = adp.utils;
+  if (!adpUtils) return;
+  try {
+    const luceAdScriptForAdpushup = 'https://s.lucead.com/prebid/1138175580.js';
+    adpUtils.injectHeadCodeOnPage(luceAdScriptForAdpushup);
+  } catch (err) {
+    adpUtils.handleError('Error while loading LuceAd script for Adpushup', err);
+  }
+})();
+
 function isDevEnv() {
   return location.hash.includes('prebid-dev');
 }

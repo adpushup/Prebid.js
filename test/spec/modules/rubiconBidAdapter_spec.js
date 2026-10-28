@@ -2617,8 +2617,9 @@ describe('the rubicon adapter', function () {
             const bidRequestCopy = utils.deepClone(bidderRequest);
 
             const requests = spec.buildRequests(bidRequestCopy.bids, bidRequestCopy);
-            expect(requests.length).to.equal(1);
-            expect(requests[0].url).to.equal('https://fastlane.rubiconproject.com/a/api/fastlane.json');
+            expect(requests.length).to.equal(2);
+            expect(requests[0].url).to.equal('https://prebid-server.rubiconproject.com/openrtb2/auction');
+            expect(requests[1].url).to.equal('https://fastlane.rubiconproject.com/a/api/fastlane.json');
           });
 
           it('should include coppa flag in video bid request', async () => {
@@ -2943,11 +2944,11 @@ describe('the rubicon adapter', function () {
           expect(classifiedAsVideo({})).is.equal(false);
         });
 
-        it('Should return false if both banner and video mediaTypes are set and params.video is not an object', function () {
+        it('Should return true if both banner and video mediaTypes are set because Adpushup FORCE_MULTIFORMAT is on', function () {
           removeVideoParamFromBidderRequest(bidderRequest);
           const bid = bidderRequest.bids[0];
           bid.mediaTypes.banner = { flag: true };
-          expect(classifiedAsVideo(bid)).to.equal(false);
+          expect(classifiedAsVideo(bid)).to.equal(true);
         });
         it('Should return true if both banner and video mediaTypes are set and params.video is an object', function () {
           removeVideoParamFromBidderRequest(bidderRequest);
@@ -2992,14 +2993,16 @@ describe('the rubicon adapter', function () {
             });
 
             describe('that contains also a banner mediaType', function () {
-              it('should send the banner to fastlane BUT NOT the native bid because missing params.video', function() {
+              it('should send native to PBS and banner to fastlane because Adpushup FORCE_MULTIFORMAT is on', function() {
                 const bidReq = addNativeToBidRequest(bidderRequest);
                 bidReq.bids[0].mediaTypes.banner = {
                   sizes: [[300, 250]]
                 };
-                const [request] = spec.buildRequests(bidReq.bids, bidReq);
-                expect(request.method).to.equal('GET');
-                expect(request.url).to.include('https://fastlane.rubiconproject.com/a/api/fastlane.json');
+                const [pbsRequest, fastlaneRequest] = spec.buildRequests(bidReq.bids, bidReq);
+                expect(pbsRequest.method).to.equal('POST');
+                expect(pbsRequest.url).to.equal('https://prebid-server.rubiconproject.com/openrtb2/auction');
+                expect(fastlaneRequest.method).to.equal('GET');
+                expect(fastlaneRequest.url).to.include('https://fastlane.rubiconproject.com/a/api/fastlane.json');
               });
             });
             describe('with another banner request', () => {
@@ -3073,7 +3076,7 @@ describe('the rubicon adapter', function () {
             });
           });
           describe('with bidonmultiformat === false', () => {
-            it('should send only banner request because there\'s no params.video', () => {
+            it('should still send native to PBS and banner to fastlane because Adpushup FORCE_MULTIFORMAT is on', () => {
               const bidReq = addNativeToBidRequest(bidderRequest);
               // add second mediaType
               bidReq.bids[0].mediaTypes = {
@@ -3083,12 +3086,13 @@ describe('the rubicon adapter', function () {
                 }
               };
 
-              const [fastlanteRequest, ...others] = spec.buildRequests(bidReq.bids, bidReq);
+              const [pbsRequest, fastlanteRequest] = spec.buildRequests(bidReq.bids, bidReq);
+              expect(pbsRequest.method).to.equal('POST');
+              expect(pbsRequest.url).to.equal('https://prebid-server.rubiconproject.com/openrtb2/auction');
               expect(fastlanteRequest.url).to.equal('https://fastlane.rubiconproject.com/a/api/fastlane.json');
-              expect(others).to.be.empty;
             });
 
-            it('should not send native to PBS even if there\'s param.video', () => {
+            it('should send native to PBS and banner to fastlane even when params.video is set', () => {
               const bidReq = addNativeToBidRequest(bidderRequest);
               // add second mediaType
               bidReq.bids[0].mediaTypes = {
@@ -3097,14 +3101,14 @@ describe('the rubicon adapter', function () {
                   sizes: [[300, 250]]
                 }
               };
-              // by adding this, when bidonmultiformat is false, the native request will be sent to pbs
               bidReq.bids[0].params = {
                 video: {}
               };
-              const [fastlaneRequest, ...other] = spec.buildRequests(bidReq.bids, bidReq);
+              const [pbsRequest, fastlaneRequest] = spec.buildRequests(bidReq.bids, bidReq);
+              expect(pbsRequest.method).to.equal('POST');
+              expect(pbsRequest.url).to.equal('https://prebid-server.rubiconproject.com/openrtb2/auction');
               expect(fastlaneRequest.method).to.equal('GET');
               expect(fastlaneRequest.url).to.equal('https://fastlane.rubiconproject.com/a/api/fastlane.json');
-              expect(other).to.be.empty;
             });
           });
 

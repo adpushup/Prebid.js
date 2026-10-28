@@ -27,7 +27,7 @@ import { outstreamRenderer } from '../libraries/magniteUtils/outstream.js';
 /**
  * @typedef {import('../src/adapters/bidderFactory.js').BidRequest} BidRequest
  */
-
+const FORCE_MULTIFORMAT = true;
 const DEFAULT_INTEGRATION = 'pbjs_lite';
 const DEFAULT_PBS_INTEGRATION = 'pbjs';
 
@@ -310,7 +310,7 @@ export const spec = {
         // if it contains the video param and the Video mediaType, send Video to PBS (not native!)
         (video && mediaTypes.includes(VIDEO)) ||
         // if bidonmultiformat is on, send everything to PBS
-        (bidonmultiformat && (mediaTypes.includes(VIDEO) || mediaTypes.includes(NATIVE)))
+        ((FORCE_MULTIFORMAT || bidonmultiformat) && (mediaTypes.includes(VIDEO) || mediaTypes.includes(NATIVE)))
       );
     });
 
@@ -335,9 +335,11 @@ export const spec = {
           // if it's just banner
           (mediaTypes.length === 1) ||
           // if bidonmultiformat is true
-          bidonmultiformat ||
-          // if there's no video parameter, or there's video parameter but no video mediaType
-          !video || !mediaTypes.includes(VIDEO)
+          FORCE_MULTIFORMAT || bidonmultiformat ||
+          // if bidonmultiformat is false and there's no video parameter
+          (!bidonmultiformat && !video) ||
+          // if there's video parameter, but there's no video mediatype
+          (!bidonmultiformat && video && !mediaTypes.includes(VIDEO))
         )
       );
     });
@@ -491,7 +493,7 @@ export const spec = {
       'zone_id': params.zoneId,
       'size_id': parsedSizes[0],
       'alt_size_ids': parsedSizes.slice(1).join(',') || undefined,
-      'rp_floor': (params.floor = parseFloat(params.floor)) >= 0.01 ? params.floor : undefined,
+      'rp_floor': (parseFloat(params.floor)) >= 0.01 ? params.floor : undefined,
       'rp_secure': '1',
       'tk_flint': `${rubiConf.int_type || DEFAULT_INTEGRATION}_v$prebid.version$`,
       'x_source.tid': bidderRequest.ortb2?.source?.tid,
@@ -1020,7 +1022,7 @@ export function classifiedAsVideo(bidRequest) {
   // Given this legacy implementation, other code depends on params.video being defined
 
   // if it's bidonmultiformat, we don't care of the video object
-  if (isVideo && isBidOnMultiformat) return true;
+  if (isVideo && (FORCE_MULTIFORMAT || isBidOnMultiformat)) return true;
 
   if (isBanner && isMissingVideoParams) {
     isVideo = false;

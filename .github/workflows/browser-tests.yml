@@ -125,7 +125,7 @@ jobs:
     with:
       browser: ${{ matrix.browser.wdioName }}
       built-key: ${{ needs.build.outputs[matrix.browser.os] }}
-      test-cmd: npx gulp e2e-test-nobuild --local
+      test-cmd: node test/helpers/run-e2e-with-pbjs.js
       chunks: 1
       runs-on: ${{ matrix.browser.runsOn || 'ubuntu-latest' }}
       install-safari: ${{ matrix.browser.os == 'macos' }}
