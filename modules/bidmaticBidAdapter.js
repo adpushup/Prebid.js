@@ -1,6 +1,5 @@
 import { registerBidder } from '../src/adapters/bidderFactory.js';
 import {
-  _map,
   cleanObj,
   deepAccess,
   flatten,
@@ -51,7 +50,7 @@ export const spec = {
     const { tag, bids } = bidToTag(bidRequests, adapterRequest);
     const bidChunks = chunk(bids, chunkSize);
 
-    return _map(bidChunks, (bids) => {
+    return bidChunks.map((bids) => {
       return {
         data: Object.assign({}, tag, { BidRequests: bids }),
         adapterRequest,

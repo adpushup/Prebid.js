@@ -784,7 +784,9 @@ describe('E-Planning Adapter', function () {
     });
     it('if 2 bids arrive, one outstream and another banner, outstream has more priority', function () {
       const bidRequests = [validBidSpaceOutstream, validBidSpaceName];
-      const data = spec.buildRequests(bidRequests, bidderRequest).data;
+      const requests = spec.buildRequests(bidRequests, bidderRequest);
+      // Mixed formats return [video, banner]; video stays first (outstream priority).
+      const data = (Array.isArray(requests) ? requests[0] : requests).data;
       expect(data.e).to.equal('video_300x600_0:300x600;1');
       expect(data.vctx).to.equal(2);
       expect(data.vv).to.equal(3);
