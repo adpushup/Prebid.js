@@ -8,6 +8,7 @@ import {
   handleCreativeEvent,
   handleNativeMessage,
   handleRender, markWinningBid, renderIfDeferred,
+  renderAdDirect,
 } from '../../../src/adRendering.js';
 import { getPreparedBidForAuction } from '../../../src/auction.js';
 import { AD_RENDER_FAILED_REASON, BID_STATUS, EVENTS } from 'src/constants.js';
@@ -540,6 +541,80 @@ describe('adRendering', () => {
     it('should invoke onAddRenderSucceeded on emitAdRenderSucceeded', () => {
       emitAdRenderSucceeded({ bid: bids[0] });
       sinon.assert.called(mockAdapterSpec.onAdRenderSucceeded);
+    });
+  });
+
+  describe('legacy Microsoft SDK render reset', () => {
+    const RESET_SCRIPT = '<script> window.MS_SDK_RENDER = null; </script>';
+    let doc, bid, elStub;
+
+    beforeEach(() => {
+      config.setConfig({
+        auctionOptions: {
+          legacyRender: true
+        }
+      });
+      elStub = { insertBefore: sinon.stub() };
+      doc = {
+        write: sinon.spy(),
+        close: sinon.spy(),
+        readyState: 'complete',
+        defaultView: {
+          frameElement: { width: 0, height: 0, style: {} }
+        },
+        getElementsByTagName: sinon.stub().returns([elStub]),
+        querySelector: sinon.stub().returns(elStub),
+        createElement: sinon.stub()
+      };
+      sandbox.stub(utils, 'inIframe').returns(true);
+      sandbox.stub(auctionManager, 'findBidByAdId').callsFake(() => bid);
+      sandbox.stub(auctionManager, 'addWinningBid');
+      sandbox.stub(bidFilters, 'isBidNotExpired').returns(true);
+      bid = {
+        adId: 'ms-sdk-ad',
+        creativeId: 'crid',
+        bidder: 'appnexus',
+        width: 300,
+        height: 250
+      };
+    });
+
+    afterEach(() => {
+      config.resetConfig();
+    });
+
+    function render(ad) {
+      bid.ad = ad;
+      renderAdDirect(doc, bid.adId);
+    }
+
+    it('writes the reset script before display-renderer/sdk.js markup', () => {
+      const ad = '<script src="https://cdn.example.com/display-renderer/sdk.js"></script>';
+      render(ad);
+      expect(doc.write.getCall(0).args[0]).to.equal(RESET_SCRIPT);
+      expect(doc.write.getCall(1).args[0]).to.equal(ad);
+      sinon.assert.called(doc.close);
+    });
+
+    it('writes the reset script before native-to-display/sdk.js markup', () => {
+      const ad = '<script src="https://cdn.example.com/native-to-display/sdk.js"></script>';
+      render(ad);
+      expect(doc.write.getCall(0).args[0]).to.equal(RESET_SCRIPT);
+      expect(doc.write.getCall(1).args[0]).to.equal(ad);
+    });
+
+    it('does not write the reset script for a non-matching ad', () => {
+      const ad = '<div>regular creative</div>';
+      render(ad);
+      sinon.assert.calledOnce(doc.write);
+      sinon.assert.calledWith(doc.write, ad);
+    });
+
+    it('writes the reset script before a matching ad that starts with a doctype', () => {
+      const ad = '<!DOCTYPE html><html><script src="https://cdn.example.com/display-renderer/sdk.js"></script></html>';
+      render(ad);
+      expect(doc.write.getCall(0).args[0]).to.equal(RESET_SCRIPT);
+      expect(doc.write.getCall(1).args[0]).to.equal(ad);
     });
   });
 });

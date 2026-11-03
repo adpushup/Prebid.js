@@ -234,7 +234,9 @@ export const sharethroughAdapterSpec = {
           propertiesToConsider.forEach((propertyToConsider) => {
             applyVideoProperty(propertyToConsider, videoRequest, impression);
           });
-        } else if (isEqtvTest && nativeRequest) {
+        }
+
+        if (isEqtvTest && nativeRequest) {
           const nativeImp = converter.toORTB({
             bidRequests: [bidReq],
             bidderRequest,
@@ -251,7 +253,7 @@ export const sharethroughAdapterSpec = {
           id: bidReq.bidId,
           tagid,
           secure: secure ? 1 : 0,
-          bidfloor: getBidRequestFloor(bidReq),
+          bidfloor: getBidRequestFloor(bidReq, impression),
           ...impression,
         };
       })
@@ -357,12 +359,19 @@ export const sharethroughAdapterSpec = {
   onSetTargeting: (bid) => {},
 };
 
-function getBidRequestFloor(bid) {
+function getBidRequestFloor(bid, impression) {
   let floor = null;
   if (typeof bid.getFloor === 'function') {
+    const mediaType = impression && impression.banner
+      ? BANNER
+      : impression && impression.video
+        ? VIDEO
+        : impression && impression.native
+          ? NATIVE
+          : BANNER;
     const floorInfo = bid.getFloor({
       currency: 'USD',
-      mediaType: bid.mediaTypes && bid.mediaTypes.video ? 'video' : 'banner',
+      mediaType,
       size: bid.sizes.map((size) => ({ w: size[0], h: size[1] })),
     });
     if (isPlainObject(floorInfo) && floorInfo.currency === 'USD' && !isNaN(parseFloat(floorInfo.floor))) {

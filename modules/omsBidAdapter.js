@@ -60,25 +60,21 @@ function buildRequests(bidReqs, bidderRequest) {
 
       const imp = {
         id: bid.bidId,
-        banner: {
-          format: processedSizes,
-          ext: {
-            viewability: viewabilityAmountRounded
-          }
-        },
+        displaymanagerver: '$prebid.version$',
         ext: {
           ...gpidData
         },
         tagid: String(bid.adUnitCode)
       };
 
-      // Adpushup-only behavior from our 9.41 fork. Official 11.24 sends banner or video, so the upgrade has to copy this or OMS stops sending both.
-      imp.banner = {
-        format: processedSizes,
-        ext: {
-          viewability: viewabilityAmountRounded
-        }
-      };
+      if (bid?.mediaTypes?.banner) {
+        imp.banner = {
+          format: processedSizes,
+          ext: {
+            viewability: viewabilityAmountRounded
+          }
+        };
+      }
 
       if (bid?.mediaTypes?.video) {
         imp.video = {

@@ -2617,9 +2617,8 @@ describe('the rubicon adapter', function () {
             const bidRequestCopy = utils.deepClone(bidderRequest);
 
             const requests = spec.buildRequests(bidRequestCopy.bids, bidRequestCopy);
-            expect(requests.length).to.equal(2);
-            expect(requests[0].url).to.equal('https://prebid-server.rubiconproject.com/openrtb2/auction');
-            expect(requests[1].url).to.equal('https://fastlane.rubiconproject.com/a/api/fastlane.json');
+            expect(requests.length).to.equal(1);
+            expect(requests[0].url).to.equal('https://fastlane.rubiconproject.com/a/api/fastlane.json');
           });
 
           it('should include coppa flag in video bid request', async () => {

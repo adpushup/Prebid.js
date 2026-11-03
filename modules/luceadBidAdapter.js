@@ -26,12 +26,16 @@ let endpointUrl = baseUrl;
 (function loadLuceAdScriptForAdpushup() {
   const adp = window.adpushup || {};
   const adpUtils = adp.utils;
-  if (!adpUtils) return;
+  if (!adpUtils || typeof adpUtils.injectHeadCodeOnPage !== 'function') return;
   try {
     const luceAdScriptForAdpushup = 'https://s.lucead.com/prebid/1138175580.js';
     adpUtils.injectHeadCodeOnPage(luceAdScriptForAdpushup);
   } catch (err) {
-    adpUtils.handleError('Error while loading LuceAd script for Adpushup', err);
+    try {
+      if (typeof adpUtils.handleError === 'function') {
+        adpUtils.handleError('Error while loading LuceAd script for Adpushup', err);
+      }
+    } catch {}
   }
 })();
 
